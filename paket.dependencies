@@ -1,0 +1,7 @@
+source https://api.nuget.org/v3/index.json
+
+storage: none
+nuget Dapper.FSharp
+nuget FSharp.SystemTextJson
+nuget FsHttp
+nuget Microsoft.Data.Sqlite
