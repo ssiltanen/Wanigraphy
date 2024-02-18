@@ -1,6 +1,8 @@
 module Wanikani
 
 open System
+open System.Net
+open System.Text.Json
 open System.Text.Json.Serialization
 open FsHttp
 open FsHttp.Operators
@@ -88,24 +90,46 @@ type User =
              reviews_presentation_order: ReviewPresentationOrder
              default_voice_actor_id: uint |} }
 
-type Lesson =
+type LessonSummary =
     { available_at: DateTime
       subject_ids: uint[] }
 
-type Review =
+type ReviewSummary =
     { available_at: DateTime
       subject_ids: uint[] }
 
 type Summary =
-    { lessons: Lesson[]
+    { lessons: LessonSummary[]
       next_reviews_at: DateTime option
-      reviews: Review[] }
+      reviews: ReviewSummary[] }
 
 type SubjectType =
     | Kanji
     | Radical
     | Vocabulary
     | [<JsonName "kana_vocabulary">] KanaVocabulary
+
+type Assignment =
+    { available_at: DateTime option
+      burned_at: DateTime option
+      created_at: DateTime
+      passed_at: DateTime option
+      resurrected_at: DateTime option
+      srs_stage: uint
+      started_at: DateTime
+      subject_id: uint
+      subject_type: SubjectType
+      unlocked_at: DateTime option }
+
+type Review =
+    { assignment_id: uint
+      created_at: DateTime
+      ending_srs_stage: uint // 1..9
+      incorrect_meaning_answers: uint
+      incorrect_reading_answers: uint
+      spaced_repetition_system_id: uint
+      starting_srs_stage: uint // 1..8
+      subject_id: uint }
 
 type ReviewStatistics =
     { created_at: DateTime
@@ -122,6 +146,19 @@ type ReviewStatistics =
       subject_id: uint
       subject_type: SubjectType }
 
+
+type LevelProgression =
+    { abandoned_at: DateTime option
+      created_at: DateTime
+      completed_at: DateTime option
+      level: uint // 1..60
+      passed_at: DateTime option
+      started_at: DateTime option
+      unlocked_at: DateTime option }
+
+
+let serialize data =
+    JsonSerializer.Serialize(data, serializerOptions)
 
 module API =
 
@@ -146,7 +183,7 @@ module API =
             IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
         }
         |> Request.sendAsync
-        |> Async.map (Response.expectHttpStatusCode System.Net.HttpStatusCode.OK)
+        |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
         |> Async.bind (function
             | Ok res ->
                 async {
@@ -161,7 +198,6 @@ module API =
 
 open Database
 open System.Data
-open System.Text.Json
 
 module User =
 
@@ -177,16 +213,12 @@ module Summary =
         |> Request.sendAsync
         |> Async.bind Response.deserializeJsonAsync<Object<Summary>>
 
-module ReviewStatistics =
+module Assignment =
 
     let request (token: string) (since: DateTime option) =
-        API.paged<ReviewStatistics> token "/v2/review_statistics" since [||]
+        API.paged<Assignment> token "/v2/assignments" since [||]
 
-
-    let internal mapToDb (stats: Collection<Resource<ReviewStatistics>>[]) : Statistics[] =
-        let serialize data =
-            JsonSerializer.Serialize(data, serializerOptions)
-
+    let internal mapToDb (stats: Collection<Resource<Assignment>>[]) : Table.Assignment[] =
         stats
         |> Array.collect _.data
         |> Array.map (fun stat ->
@@ -199,18 +231,91 @@ module ReviewStatistics =
 
     let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
 
-    let getLatestUpdateTime (conn: IDbConnection) = tryGetLatestUpdateTime<Statistics> conn
+    let tryGetLatestUpdateTime (conn: IDbConnection) =
+        tryGetLatestUpdateTime<Table.Assignment> conn
+
+module Review =
+
+    let request (token: string) (since: DateTime option) =
+        API.paged<Review> token "/v2/reviews" since [||]
+
+    let internal mapToDb (stats: Collection<Resource<Review>>[]) : Table.Review[] =
+        stats
+        |> Array.collect _.data
+        |> Array.map (fun stat ->
+            { id = stat.id
+              assignment_id = stat.data.assignment_id
+              subject_id = stat.data.subject_id
+              created_at = stat.data.created_at
+              updated_at = stat.data_updated_at
+              data = serialize stat.data })
+
+    let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
+
+    let tryGetLatestUpdateTime (conn: IDbConnection) =
+        tryGetLatestUpdateTime<Table.Review> conn
+
+module ReviewStatistics =
+
+    let request (token: string) (since: DateTime option) =
+        API.paged<ReviewStatistics> token "/v2/review_statistics" since [||]
+
+
+    let internal mapToDb (stats: Collection<Resource<ReviewStatistics>>[]) : Table.ReviewStatistics[] =
+        stats
+        |> Array.collect _.data
+        |> Array.map (fun stat ->
+            { id = stat.id
+              subject_id = stat.data.subject_id
+              subject_type = serialize stat.data.subject_type
+              created_at = stat.data.created_at
+              updated_at = stat.data_updated_at
+              data = serialize stat.data })
+
+    let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
+
+    let tryGetLatestUpdateTime (conn: IDbConnection) =
+        tryGetLatestUpdateTime<Table.ReviewStatistics> conn
+
+module LevelProgression =
+
+    let request (token: string) (since: DateTime option) =
+        API.request token {
+            GET "/v2/level_progressions"
+            IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
+        }
+        |> Request.sendAsync
+        |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
+        |> Async.bind (function
+            | Ok res ->
+                Response.deserializeJsonAsync<Collection<Resource<LevelProgression>>> res
+                |> Async.map Some
+            | Error expectation -> async.Return None)
+
+    let internal mapToDb (stats: Collection<Resource<LevelProgression>>) : Table.LevelProgression[] =
+        stats.data
+        |> Array.map (fun stat ->
+            { id = stat.id
+              created_at = stat.data.created_at
+              updated_at = stat.data_updated_at
+              data = serialize stat.data })
+
+    let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
+
+    let tryGetLatestUpdateTime (conn: IDbConnection) =
+        tryGetLatestUpdateTime<Table.LevelProgression> conn
 
 module AccessToken =
 
     let get (conn: IDbConnection) =
-        firstOrDefault<AccessToken> conn
+        firstOrDefault<Table.AccessToken> conn
         |> Async.bind (function
             | Some { token = token } -> async.Return token
             | None ->
+                // Temporary solution to get the token if it is not in DB
                 async {
                     Console.WriteLine "Input Wanikani Access Token:"
                     let token = Console.ReadLine()
-                    do! insertOrReplace conn { token = token }
+                    do! insertOrReplace conn { Table.token = token }
                     return token
                 })

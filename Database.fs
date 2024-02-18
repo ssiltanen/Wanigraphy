@@ -11,7 +11,35 @@ CREATE TABLE IF NOT EXISTS AccessToken (
     token TEXT PRIMARY KEY
 );
 
-CREATE TABLE IF NOT EXISTS Statistics (
+CREATE TABLE IF NOT EXISTS Assignment (
+    id INTEGER PRIMARY KEY,
+    subject_id INTEGER,
+    subject_type TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    data JSONB
+);
+
+CREATE TABLE IF NOT EXISTS Review (
+    id INTEGER PRIMARY KEY,
+    assignment_id INTEGER,
+    subject_id INTEGER,
+    created_at DATETIME,
+    updated_at DATETIME,
+    data JSONB
+);
+
+CREATE TABLE IF NOT EXISTS ReviewStatistics (
+    id INTEGER PRIMARY KEY,
+    subject_id INTEGER,
+    subject_type TEXT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    data JSONB
+);
+
+
+CREATE TABLE IF NOT EXISTS LevelProgression (
     id INTEGER PRIMARY KEY,
     subject_id INTEGER,
     subject_type TEXT,
@@ -21,15 +49,40 @@ CREATE TABLE IF NOT EXISTS Statistics (
 );
 """
 
-type AccessToken = { token: string }
+module Table =
 
-type Statistics =
-    { id: uint
-      subject_id: uint
-      subject_type: string
-      created_at: DateTime
-      updated_at: DateTime
-      data: string }
+    type AccessToken = { token: string }
+
+    type Assignment =
+        { id: uint
+          subject_id: uint
+          subject_type: string
+          created_at: DateTime
+          updated_at: DateTime
+          data: string }
+
+    type Review =
+        { id: uint
+          assignment_id: uint
+          subject_id: uint
+          created_at: DateTime
+          updated_at: DateTime
+          data: string }
+
+    type ReviewStatistics =
+        { id: uint
+          subject_id: uint
+          subject_type: string
+          created_at: DateTime
+          updated_at: DateTime
+          data: string }
+
+
+    type LevelProgression =
+        { id: uint
+          created_at: DateTime
+          updated_at: DateTime
+          data: string }
 
 // Map database nulls with Options
 Dapper.FSharp.SQLite.OptionTypes.register ()
@@ -81,6 +134,6 @@ let tryGetLatestUpdateTime<'table> (conn: IDbConnection) =
         for row in table<'table> do
             max "updated_at" "latest"
     }
-    |> conn.SelectAsync<{| latest: DateTime |}>
+    |> conn.SelectAsync<{| latest: DateTime option |}>
     |> Async.AwaitTask
-    |> Async.map (Seq.tryHead >> (Option.map _.latest))
+    |> Async.map (Seq.tryHead >> (Option.bind _.latest))
