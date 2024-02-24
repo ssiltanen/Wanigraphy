@@ -99,33 +99,33 @@ let createIfNotExist (conn: SqliteConnection) =
     cmd.CommandText <- schema
     cmd.ExecuteNonQueryAsync() |> Async.AwaitTask |> Async.Ignore
 
-let insertOrReplace (conn: IDbConnection) (insertValue: 'a) =
+let insertOrReplace<'table> (conn: IDbConnection) (insertValue: 'table) =
     insert {
-        into table<'a>
+        into table<'table>
         value insertValue
     }
     |> conn.InsertOrReplaceAsync
     |> Async.AwaitTask
     |> Async.Ignore
 
-let insertOrReplaceMultiple (conn: IDbConnection) (insertValues: 'a[]) =
+let insertOrReplaceMultiple<'table> (conn: IDbConnection) (insertValues: 'table[]) =
     if Array.isEmpty insertValues then
         async.Return()
     else
         insert {
-            into table<'a>
+            into table<'table>
             values (List.ofArray insertValues)
         }
         |> conn.InsertOrReplaceAsync
         |> Async.AwaitTask
         |> Async.Ignore
 
-let firstOrDefault<'a> (conn: IDbConnection) =
+let firstOrDefault<'table> (conn: IDbConnection) =
     select {
-        for row in table<'a> do
+        for row in table<'table> do
             skipTake 0 1
     }
-    |> conn.SelectAsync<'a>
+    |> conn.SelectAsync<'table>
     |> Async.AwaitTask
     |> Async.map Seq.tryHead
 

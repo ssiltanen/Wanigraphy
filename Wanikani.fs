@@ -177,7 +177,26 @@ module API =
 
         }
 
-    let rec paged<'Data> token path since (pages: Collection<Resource<'Data>>[]) =
+    let getObject<'data> token path =
+        request token { GET path }
+        |> Request.sendAsync
+        |> Async.bind Response.deserializeJsonAsync<Object<'data>>
+        |> Async.map _.data
+
+    let getSinglePagedResource<'Data> token since path =
+        request token {
+            GET path
+            IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
+        }
+        |> Request.sendAsync
+        |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
+        |> Async.bind (function
+            | Ok res ->
+                Response.deserializeJsonAsync<Collection<Resource<'Data>>> res
+                |> Async.map _.data
+            | Error expectation -> async.Return [||])
+
+    let rec getPagedResource<'Data> token since path (pages: Resource<'Data>[]) =
         request token {
             GET path
             IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
@@ -188,10 +207,10 @@ module API =
             | Ok res ->
                 async {
                     let! data = Response.deserializeJsonAsync<Collection<Resource<'Data>>> res
-                    let pages' = Array.append pages [| data |]
+                    let pages' = Array.append pages data.data
 
                     match data.pages.next_url with
-                    | Some nextUrl -> return! paged<'Data> token nextUrl.PathAndQuery since pages'
+                    | Some nextUrl -> return! getPagedResource<'Data> token since nextUrl.PathAndQuery pages'
                     | None -> return pages'
                 }
             | Error expectation -> async.Return pages)
@@ -199,119 +218,105 @@ module API =
 open Database
 open System.Data
 
+let fetchSaveDelta<'api, 'table>
+    (conn: IDbConnection)
+    (request: DateTime option -> Async<'api[]>)
+    (save: IDbConnection -> 'api[] -> Async<unit>)
+    =
+    tryGetLatestUpdateTime<'table> conn
+    |> Async.bind request
+    |> Async.bind (save conn)
+
 module User =
 
-    let request (token: string) =
-        API.request token { GET "/v2/user" }
-        |> Request.sendAsync
-        |> Async.bind Response.deserializeJsonAsync<Object<User>>
+    let request token = API.getObject<User> token "/v2/user"
 
 module Summary =
 
-    let request (token: string) =
-        API.request token { GET "/v2/summary" }
-        |> Request.sendAsync
-        |> Async.bind Response.deserializeJsonAsync<Object<Summary>>
+    let request token =
+        API.getObject<Summary> token "/v2/summary"
 
 module Assignment =
 
-    let request (token: string) (since: DateTime option) =
-        API.paged<Assignment> token "/v2/assignments" since [||]
+    let request token since =
+        API.getPagedResource<Assignment> token since "/v2/assignments" [||]
 
-    let internal mapToDb (stats: Collection<Resource<Assignment>>[]) : Table.Assignment[] =
-        stats
-        |> Array.collect _.data
-        |> Array.map (fun stat ->
-            { id = stat.id
-              subject_id = stat.data.subject_id
-              subject_type = serialize stat.data.subject_type
-              created_at = stat.data.created_at
-              updated_at = stat.data_updated_at
-              data = serialize stat.data })
+    let mapToDb (assignment: Resource<Assignment>) : Table.Assignment =
+        { id = assignment.id
+          subject_id = assignment.data.subject_id
+          subject_type = serialize assignment.data.subject_type
+          created_at = assignment.data.created_at
+          updated_at = assignment.data_updated_at
+          data = serialize assignment.data }
 
-    let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
+    let save conn =
+        Array.map mapToDb >> insertOrReplaceMultiple conn
 
-    let tryGetLatestUpdateTime (conn: IDbConnection) =
-        tryGetLatestUpdateTime<Table.Assignment> conn
+    let refresh conn token =
+        fetchSaveDelta<Resource<Assignment>, Table.Assignment> conn (request token) save
 
 module Review =
 
-    let request (token: string) (since: DateTime option) =
-        API.paged<Review> token "/v2/reviews" since [||]
+    let request token since =
+        API.getPagedResource<Review> token since "/v2/reviews" [||]
 
-    let internal mapToDb (stats: Collection<Resource<Review>>[]) : Table.Review[] =
-        stats
-        |> Array.collect _.data
-        |> Array.map (fun stat ->
-            { id = stat.id
-              assignment_id = stat.data.assignment_id
-              subject_id = stat.data.subject_id
-              created_at = stat.data.created_at
-              updated_at = stat.data_updated_at
-              data = serialize stat.data })
+    let mapToDb (review: Resource<Review>) : Table.Review =
+        { id = review.id
+          assignment_id = review.data.assignment_id
+          subject_id = review.data.subject_id
+          created_at = review.data.created_at
+          updated_at = review.data_updated_at
+          data = serialize review.data }
 
-    let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
+    let save conn =
+        Array.map mapToDb >> insertOrReplaceMultiple conn
 
-    let tryGetLatestUpdateTime (conn: IDbConnection) =
-        tryGetLatestUpdateTime<Table.Review> conn
+    let refresh conn token =
+        fetchSaveDelta<Resource<Review>, Table.Review> conn (request token) save
 
 module ReviewStatistics =
 
-    let request (token: string) (since: DateTime option) =
-        API.paged<ReviewStatistics> token "/v2/review_statistics" since [||]
+    let request token since =
+        API.getPagedResource<ReviewStatistics> token since "/v2/review_statistics" [||]
 
+    let mapToDb (stats: Resource<ReviewStatistics>) : Table.ReviewStatistics =
+        { id = stats.id
+          subject_id = stats.data.subject_id
+          subject_type = serialize stats.data.subject_type
+          created_at = stats.data.created_at
+          updated_at = stats.data_updated_at
+          data = serialize stats.data }
 
-    let internal mapToDb (stats: Collection<Resource<ReviewStatistics>>[]) : Table.ReviewStatistics[] =
-        stats
-        |> Array.collect _.data
-        |> Array.map (fun stat ->
-            { id = stat.id
-              subject_id = stat.data.subject_id
-              subject_type = serialize stat.data.subject_type
-              created_at = stat.data.created_at
-              updated_at = stat.data_updated_at
-              data = serialize stat.data })
+    let save conn =
+        Array.map mapToDb >> insertOrReplaceMultiple conn
 
-    let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
-
-    let tryGetLatestUpdateTime (conn: IDbConnection) =
-        tryGetLatestUpdateTime<Table.ReviewStatistics> conn
+    let refresh conn token =
+        fetchSaveDelta<Resource<ReviewStatistics>, Table.ReviewStatistics> conn (request token) save
 
 module LevelProgression =
 
-    let request (token: string) (since: DateTime option) =
-        API.request token {
-            GET "/v2/level_progressions"
-            IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
-        }
-        |> Request.sendAsync
-        |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
-        |> Async.bind (function
-            | Ok res ->
-                Response.deserializeJsonAsync<Collection<Resource<LevelProgression>>> res
-                |> Async.map Some
-            | Error expectation -> async.Return None)
+    let request token since =
+        API.getSinglePagedResource<LevelProgression> token since "/v2/level_progressions"
 
-    let internal mapToDb (stats: Collection<Resource<LevelProgression>>) : Table.LevelProgression[] =
-        stats.data
-        |> Array.map (fun stat ->
-            { id = stat.id
-              created_at = stat.data.created_at
-              updated_at = stat.data_updated_at
-              data = serialize stat.data })
+    let mapToDb (progression: Resource<LevelProgression>) : Table.LevelProgression =
+        { id = progression.id
+          created_at = progression.data.created_at
+          updated_at = progression.data_updated_at
+          data = serialize progression.data }
 
-    let save (conn: IDbConnection) = mapToDb >> insertOrReplaceMultiple conn
+    let save conn =
+        Array.map mapToDb >> insertOrReplaceMultiple conn
 
-    let tryGetLatestUpdateTime (conn: IDbConnection) =
-        tryGetLatestUpdateTime<Table.LevelProgression> conn
+    let refresh conn token =
+        fetchSaveDelta<Resource<LevelProgression>, Table.LevelProgression> conn (request token) save
 
 module AccessToken =
 
-    let get (conn: IDbConnection) =
+    let get conn =
         firstOrDefault<Table.AccessToken> conn
-        |> Async.bind (function
-            | Some { token = token } -> async.Return token
-            | None ->
+        |> Async.bind (
+            Option.map (_.token >> async.Return)
+            >> Option.defaultWith (fun _ ->
                 // Temporary solution to get the token if it is not in DB
                 async {
                     Console.WriteLine "Input Wanikani Access Token:"
@@ -319,3 +324,4 @@ module AccessToken =
                     do! insertOrReplace conn { Table.token = token }
                     return token
                 })
+        )

@@ -22,21 +22,10 @@ let main argv =
         let! summary = Summary.request token
 
         do!
-            [ ReviewStatistics.tryGetLatestUpdateTime conn
-              |> Async.bind (ReviewStatistics.request token)
-              |> Async.bind (ReviewStatistics.save conn)
-
-              Assignment.tryGetLatestUpdateTime conn
-              |> Async.bind (Assignment.request token)
-              |> Async.bind (Assignment.save conn)
-
-              LevelProgression.tryGetLatestUpdateTime conn
-              |> Async.bind (LevelProgression.request token)
-              |> Async.bind (Option.iterAsync (LevelProgression.save conn))
-
-              Review.tryGetLatestUpdateTime conn
-              |> Async.bind (Review.request token)
-              |> Async.bind (Review.save conn) ]
+            [ ReviewStatistics.refresh conn token
+              Assignment.refresh conn token
+              LevelProgression.refresh conn token
+              Review.refresh conn token ]
             |> Async.Parallel
             |> Async.Ignore
 
