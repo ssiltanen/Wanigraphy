@@ -2,7 +2,6 @@ module Wanikani
 
 open System
 open System.Net
-open System.Text.Json
 open System.Text.Json.Serialization
 open FsHttp
 open FsHttp.Operators
@@ -156,19 +155,13 @@ type LevelProgression =
       started_at: DateTime option
       unlocked_at: DateTime option }
 
-
-let serialize data =
-    JsonSerializer.Serialize(data, serializerOptions)
-
 module API =
 
     let request token =
-        let baseUrl = "https://api.wanikani.com"
-
         http {
-            config_transformHeader (fun (header: Header) ->
+            config_transformHeader (fun header ->
                 { header with
-                    target.address = Some(baseUrl </> header.target.address.Value)
+                    target.address = Some("https://api.wanikani.com" </> header.target.address.Value)
                     headers =
                         header.headers
                         |> Map.add "Cache-Control" "no-cache"
@@ -181,44 +174,33 @@ module API =
         request token { GET path }
         |> Request.sendAsync
         |> Async.bind Response.deserializeJsonAsync<Object<'data>>
-        |> Async.map _.data
 
-    let getSinglePagedResource<'Data> token since path =
-        request token {
-            GET path
-            IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
-        }
-        |> Request.sendAsync
-        |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
-        |> Async.bind (function
-            | Ok res ->
-                Response.deserializeJsonAsync<Collection<Resource<'Data>>> res
-                |> Async.map _.data
-            | Error expectation -> async.Return [||])
-
-    let rec getPagedResource<'Data> token since path (pages: Resource<'Data>[]) =
-        request token {
-            GET path
-            IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
-        }
-        |> Request.sendAsync
-        |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
-        |> Async.bind (function
-            | Ok res ->
-                async {
-                    let! data = Response.deserializeJsonAsync<Collection<Resource<'Data>>> res
-                    let pages' = Array.append pages data.data
-
-                    match data.pages.next_url with
-                    | Some nextUrl -> return! getPagedResource<'Data> token since nextUrl.PathAndQuery pages'
-                    | None -> return pages'
+    let getResources<'data> token since path =
+        let rec paged acc =
+            function
+            | None -> async.Return acc
+            | Some path' ->
+                request token {
+                    GET path'
+                    IfModifiedSince(since |> Option.defaultValue DateTime.MinValue)
                 }
-            | Error expectation -> async.Return pages)
+                |> Request.sendAsync
+                |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
+                |> Async.bind (function
+                    | Ok res ->
+                        Response.deserializeJsonAsync<Collection<Resource<'data>>> res
+                        |> Async.bind (fun collection ->
+                            collection.pages.next_url
+                            |> Option.map (_.PathAndQuery)
+                            |> paged (Array.append acc collection.data))
+                    | Error expectation -> async.Return acc)
+
+        paged [||] (Some path)
 
 open Database
 open System.Data
 
-let fetchSaveDelta<'api, 'table>
+let fetchAndSaveChanges<'api, 'table>
     (conn: IDbConnection)
     (request: DateTime option -> Async<'api[]>)
     (save: IDbConnection -> 'api[] -> Async<unit>)
@@ -239,7 +221,7 @@ module Summary =
 module Assignment =
 
     let request token since =
-        API.getPagedResource<Assignment> token since "/v2/assignments" [||]
+        API.getResources<Assignment> token since "/v2/assignments"
 
     let mapToDb (assignment: Resource<Assignment>) : Table.Assignment =
         { id = assignment.id
@@ -253,12 +235,12 @@ module Assignment =
         Array.map mapToDb >> insertOrReplaceMultiple conn
 
     let refresh conn token =
-        fetchSaveDelta<Resource<Assignment>, Table.Assignment> conn (request token) save
+        fetchAndSaveChanges<Resource<Assignment>, Table.Assignment> conn (request token) save
 
 module Review =
 
     let request token since =
-        API.getPagedResource<Review> token since "/v2/reviews" [||]
+        API.getResources<Review> token since "/v2/reviews"
 
     let mapToDb (review: Resource<Review>) : Table.Review =
         { id = review.id
@@ -272,12 +254,12 @@ module Review =
         Array.map mapToDb >> insertOrReplaceMultiple conn
 
     let refresh conn token =
-        fetchSaveDelta<Resource<Review>, Table.Review> conn (request token) save
+        fetchAndSaveChanges<Resource<Review>, Table.Review> conn (request token) save
 
 module ReviewStatistics =
 
     let request token since =
-        API.getPagedResource<ReviewStatistics> token since "/v2/review_statistics" [||]
+        API.getResources<ReviewStatistics> token since "/v2/review_statistics"
 
     let mapToDb (stats: Resource<ReviewStatistics>) : Table.ReviewStatistics =
         { id = stats.id
@@ -291,12 +273,12 @@ module ReviewStatistics =
         Array.map mapToDb >> insertOrReplaceMultiple conn
 
     let refresh conn token =
-        fetchSaveDelta<Resource<ReviewStatistics>, Table.ReviewStatistics> conn (request token) save
+        fetchAndSaveChanges<Resource<ReviewStatistics>, Table.ReviewStatistics> conn (request token) save
 
 module LevelProgression =
 
     let request token since =
-        API.getSinglePagedResource<LevelProgression> token since "/v2/level_progressions"
+        API.getResources<LevelProgression> token since "/v2/level_progressions"
 
     let mapToDb (progression: Resource<LevelProgression>) : Table.LevelProgression =
         { id = progression.id
@@ -308,7 +290,7 @@ module LevelProgression =
         Array.map mapToDb >> insertOrReplaceMultiple conn
 
     let refresh conn token =
-        fetchSaveDelta<Resource<LevelProgression>, Table.LevelProgression> conn (request token) save
+        fetchAndSaveChanges<Resource<LevelProgression>, Table.LevelProgression> conn (request token) save
 
 module AccessToken =
 
