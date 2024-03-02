@@ -5,54 +5,8 @@ open System.Net
 open System.Text.Json.Serialization
 open FsHttp
 open FsHttp.Operators
+open MetaType
 
-type ObjectType =
-    | Collection
-    | Report
-    | Assignment
-    | Kanji
-    | Radical
-    | Reset
-    | Review
-    | User
-    | Vocabulary
-    | [<JsonName "kana_vocabulary">] KanaVocabulary
-    | [<JsonName "level_progression">] LevelProgression
-    | [<JsonName "review_statistic">] ReviewStatistic
-    | [<JsonName "spaced_repetition_system">] SpacedRepetitionSystem
-    | [<JsonName "study_material">] StudyMaterial
-    | [<JsonName "voice_actor">] VoiceActor
-
-(*
- * Metadata wrapper types for all content types
- *)
-type Resource<'Data> =
-    { id: uint
-      object: ObjectType
-      url: Uri
-      data_updated_at: DateTime
-      data: 'Data }
-
-type Object<'Data> =
-    { object: ObjectType
-      url: Uri
-      data_updated_at: DateTime
-      data: 'Data }
-
-type Collection<'Data> =
-    { object: ObjectType
-      url: Uri
-      pages:
-          {| previous_url: Uri option
-             next_url: Uri option
-             per_page: uint |}
-      total_count: uint
-      data_updated_at: DateTime option
-      data: 'Data[] }
-
-(*
- * Content types
- *)
 type LessonPresentationOrder =
     | Shuffled
     | [<JsonName "ascending_level_then_subject">] AscendingLevelThenSubject
@@ -157,7 +111,7 @@ type LevelProgression =
 
 module API =
 
-    let request token =
+    let request (token: string) =
         http {
             config_transformHeader (fun header ->
                 { header with
@@ -200,14 +154,34 @@ module API =
 open Database
 open System.Data
 
-let fetchAndSaveChanges<'api, 'table>
+let fetchAndSaveChanges<'a>
     (conn: IDbConnection)
-    (request: DateTime option -> Async<'api[]>)
-    (save: IDbConnection -> 'api[] -> Async<unit>)
+    (request: DateTime option -> Async<Resource<'a>[]>)
+    (save: IDbConnection -> string -> Resource<string>[] -> Async<unit>)
     =
-    tryGetLatestUpdateTime<'table> conn
+    let mapResourceToDb (r: Resource<'a>) =
+        { id = r.id
+          object = r.object
+          url = r.url
+          data_updated_at = r.data_updated_at
+          data = serialize r.data }
+
+    let table = typeof<'a>.Name
+
+    tryGetLatestUpdateTime<'a> conn table
     |> Async.bind request
-    |> Async.bind (save conn)
+    |> Async.bind (Array.map mapResourceToDb >> save conn table)
+
+let getAllSaved<'table> (conn: IDbConnection) =
+    let mapResourceFromDb (r: Resource<string>) =
+        { id = r.id
+          object = r.object
+          url = r.url
+          data_updated_at = r.data_updated_at
+          data = deserialize<'table> r.data }
+
+    getAll<Resource<string>> conn typeof<'table>.Name
+    |> Async.map (Seq.toArray >> Array.Parallel.map mapResourceFromDb)
 
 module User =
 
@@ -223,74 +197,40 @@ module Assignment =
     let request token since =
         API.getResources<Assignment> token since "/v2/assignments"
 
-    let mapToDb (assignment: Resource<Assignment>) : Table.Assignment =
-        { id = assignment.id
-          subject_id = assignment.data.subject_id
-          subject_type = serialize assignment.data.subject_type
-          created_at = assignment.data.created_at
-          updated_at = assignment.data_updated_at
-          data = serialize assignment.data }
-
-    let save conn =
-        Array.map mapToDb >> insertOrReplaceMultiple conn
-
     let refresh conn token =
-        fetchAndSaveChanges<Resource<Assignment>, Table.Assignment> conn (request token) save
+        fetchAndSaveChanges conn (request token) insertOrReplaceMultiple
+
+    let getCached = getAllSaved<Assignment>
 
 module Review =
 
     let request token since =
         API.getResources<Review> token since "/v2/reviews"
 
-    let mapToDb (review: Resource<Review>) : Table.Review =
-        { id = review.id
-          assignment_id = review.data.assignment_id
-          subject_id = review.data.subject_id
-          created_at = review.data.created_at
-          updated_at = review.data_updated_at
-          data = serialize review.data }
-
-    let save conn =
-        Array.map mapToDb >> insertOrReplaceMultiple conn
-
     let refresh conn token =
-        fetchAndSaveChanges<Resource<Review>, Table.Review> conn (request token) save
+        fetchAndSaveChanges conn (request token) insertOrReplaceMultiple
+
+    let getCached = getAllSaved<Review>
 
 module ReviewStatistics =
 
     let request token since =
         API.getResources<ReviewStatistics> token since "/v2/review_statistics"
 
-    let mapToDb (stats: Resource<ReviewStatistics>) : Table.ReviewStatistics =
-        { id = stats.id
-          subject_id = stats.data.subject_id
-          subject_type = serialize stats.data.subject_type
-          created_at = stats.data.created_at
-          updated_at = stats.data_updated_at
-          data = serialize stats.data }
-
-    let save conn =
-        Array.map mapToDb >> insertOrReplaceMultiple conn
-
     let refresh conn token =
-        fetchAndSaveChanges<Resource<ReviewStatistics>, Table.ReviewStatistics> conn (request token) save
+        fetchAndSaveChanges conn (request token) insertOrReplaceMultiple
+
+    let getCached = getAllSaved<ReviewStatistics>
 
 module LevelProgression =
 
     let request token since =
         API.getResources<LevelProgression> token since "/v2/level_progressions"
 
-    let mapToDb (progression: Resource<LevelProgression>) : Table.LevelProgression =
-        { id = progression.id
-          created_at = progression.data.created_at
-          updated_at = progression.data_updated_at
-          data = serialize progression.data }
-
-    let save conn =
-        Array.map mapToDb >> insertOrReplaceMultiple conn
-
     let refresh conn token =
-        fetchAndSaveChanges<Resource<LevelProgression>, Table.LevelProgression> conn (request token) save
+        fetchAndSaveChanges conn (request token) insertOrReplaceMultiple
+
+    let getCached = getAllSaved<LevelProgression>
 
 module AccessToken =
 

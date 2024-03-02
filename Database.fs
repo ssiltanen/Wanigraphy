@@ -13,76 +13,63 @@ CREATE TABLE IF NOT EXISTS AccessToken (
 
 CREATE TABLE IF NOT EXISTS Assignment (
     id INTEGER PRIMARY KEY,
-    subject_id INTEGER,
-    subject_type TEXT,
-    created_at DATETIME,
-    updated_at DATETIME,
+    object TEXT,
+    url TEXT,
+    data_updated_at DATETIME,
     data JSONB
 );
 
 CREATE TABLE IF NOT EXISTS Review (
     id INTEGER PRIMARY KEY,
-    assignment_id INTEGER,
-    subject_id INTEGER,
-    created_at DATETIME,
-    updated_at DATETIME,
+    object TEXT,
+    url TEXT,
+    data_updated_at DATETIME,
     data JSONB
 );
 
 CREATE TABLE IF NOT EXISTS ReviewStatistics (
     id INTEGER PRIMARY KEY,
-    subject_id INTEGER,
-    subject_type TEXT,
-    created_at DATETIME,
-    updated_at DATETIME,
+    object TEXT,
+    url TEXT,
+    data_updated_at DATETIME,
     data JSONB
 );
 
-
 CREATE TABLE IF NOT EXISTS LevelProgression (
     id INTEGER PRIMARY KEY,
-    subject_id INTEGER,
-    subject_type TEXT,
-    created_at DATETIME,
-    updated_at DATETIME,
+    object TEXT,
+    url TEXT,
+    data_updated_at DATETIME,
     data JSONB
 );
 """
 
 module Table =
-
     type AccessToken = { token: string }
 
-    type Assignment =
-        { id: uint
-          subject_id: uint
-          subject_type: string
-          created_at: DateTime
-          updated_at: DateTime
-          data: string }
+type ObjectTypeHandler() =
+    inherit Dapper.SqlMapper.TypeHandler<MetaType.ObjectType>()
 
-    type Review =
-        { id: uint
-          assignment_id: uint
-          subject_id: uint
-          created_at: DateTime
-          updated_at: DateTime
-          data: string }
+    override __.Parse(value) =
+        string value |> deserialize<MetaType.ObjectType>
 
-    type ReviewStatistics =
-        { id: uint
-          subject_id: uint
-          subject_type: string
-          created_at: DateTime
-          updated_at: DateTime
-          data: string }
+    override __.SetValue(p, value) =
+        p.DbType <- Data.DbType.String
+        p.Value <- serialize value
+
+type UriHandler() =
+    inherit Dapper.SqlMapper.TypeHandler<Uri>()
+
+    override __.Parse(value) = Uri(string value)
+
+    override __.SetValue(p, value) =
+        p.DbType <- Data.DbType.String
+        p.Value <- value.ToString()
 
 
-    type LevelProgression =
-        { id: uint
-          created_at: DateTime
-          updated_at: DateTime
-          data: string }
+// Add special type handlers
+Dapper.SqlMapper.AddTypeHandler(typeof<MetaType.ObjectType>, ObjectTypeHandler())
+Dapper.SqlMapper.AddTypeHandler(typeof<Uri>, UriHandler())
 
 // Map database nulls with Options
 Dapper.FSharp.SQLite.OptionTypes.register ()
@@ -108,12 +95,12 @@ let insertOrReplace<'table> (conn: IDbConnection) (insertValue: 'table) =
     |> Async.AwaitTask
     |> Async.Ignore
 
-let insertOrReplaceMultiple<'table> (conn: IDbConnection) (insertValues: 'table[]) =
+let insertOrReplaceMultiple<'table> (conn: IDbConnection) (tableName: string) (insertValues: 'table[]) =
     if Array.isEmpty insertValues then
         async.Return()
     else
         insert {
-            into table<'table>
+            into (table'<'table> tableName)
             values (List.ofArray insertValues)
         }
         |> conn.InsertOrReplaceAsync
@@ -129,11 +116,19 @@ let firstOrDefault<'table> (conn: IDbConnection) =
     |> Async.AwaitTask
     |> Async.map Seq.tryHead
 
-let tryGetLatestUpdateTime<'table> (conn: IDbConnection) =
+let tryGetLatestUpdateTime<'table> (conn: IDbConnection) (tableName: string) =
     select {
-        for row in table<'table> do
-            max "updated_at" "latest"
+        for row in (table'<'table> tableName) do
+            max "data_updated_at" "latest"
     }
     |> conn.SelectAsync<{| latest: DateTime option |}>
     |> Async.AwaitTask
     |> Async.map (Seq.tryHead >> (Option.bind _.latest))
+
+let getAll<'table> (conn: IDbConnection) (tableName: string) : Async<seq<'table>> =
+    select {
+        for row in (table'<'table> tableName) do
+            selectAll
+    }
+    |> conn.SelectAsync<'table>
+    |> Async.AwaitTask

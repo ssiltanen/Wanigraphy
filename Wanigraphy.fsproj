@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Utility.fs" />
+    <Compile Include="MetaType.fs" />
     <Compile Include="Database.fs" />
     <Compile Include="Wanikani.fs" />
     <Compile Include="Program.fs" />
