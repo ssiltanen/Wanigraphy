@@ -1,41 +1,87 @@
-﻿module Wanigraphy
+﻿namespace WanigraphyApp
 
 open FsHttp
 open Wanikani
 open Database
 
-GlobalConfig.Json.defaultJsonSerializerOptions <- Utility.serializerOptions
+// async {
+//     // Connect and initialize db
+//     use! conn = Database.connection
+//     do! Database.createIfNotExist conn
 
-[<EntryPoint>]
-let main argv =
+//     // Get user access token from either db or the user
+//     let! token = AccessToken.get conn
 
-    async {
-        // Connect and initialize db
-        use! conn = Database.connection
-        do! Database.createIfNotExist conn
+//     // Fetch the resources not stored in cache straight from the Wanikani API
+//     let! user = User.request token
+//     let! summary = Summary.request token
 
-        // Get user access token from either db or the user
-        let! token = AccessToken.get conn
+//     // Fetch and save latest changes of resources resources that are stored in cache
+//     do!
+//         [ ReviewStatistics.refresh conn token
+//           Assignment.refresh conn token
+//           LevelProgression.refresh conn token
+//           Review.refresh conn token ]
+//         |> Async.Parallel
+//         |> Async.Ignore
 
-        // Fetch the resources not stored in cache straight from the Wanikani API
-        let! user = User.request token
-        let! summary = Summary.request token
+//     // Read the updated resources from cache
+//     let! reviewStatistics = ReviewStatistics.getCached conn
+//     let! assignments = Assignment.getCached conn
+//     let! levelProgression = LevelProgression.getCached conn
+//     let! review = Review.getCached conn
 
-        // Fetch and save latest changes of resources resources that are stored in cache
-        do!
-            [ ReviewStatistics.refresh conn token
-              Assignment.refresh conn token
-              LevelProgression.refresh conn token
-              Review.refresh conn token ]
-            |> Async.Parallel
-            |> Async.Ignore
+//     return 0
+// }
+// |> Async.RunSynchronously
 
-        // Read the updated resources from cache
-        let! reviewStatistics = ReviewStatistics.getCached conn
-        let! assignments = Assignment.getCached conn
-        let! levelProgression = LevelProgression.getCached conn
-        let! review = Review.getCached conn
+open Avalonia
+open Avalonia.Controls
+open Avalonia.Themes.Fluent
+open Elmish
+open Avalonia.FuncUI.Hosts
+open Avalonia.FuncUI
+open Avalonia.FuncUI.Elmish
+open Avalonia.Controls.ApplicationLifetimes
 
-        return 0
-    }
-    |> Async.RunSynchronously
+open Main
+
+type MainWindow() as this =
+    inherit HostWindow()
+
+    do
+        base.Title <- "Wanigraphy"
+        // base.Icon <- WindowIcon(System.IO.Path.Combine("Assets", "Icons", "icon.ico"))
+        base.Height <- 2000.0
+        base.Width <- 2000.0
+
+        Elmish.Program.mkProgram Main.init Main.update Main.view
+        |> Program.withHost this
+        |> Program.withConsoleTrace
+        |> Program.run
+
+type App() =
+    inherit Application()
+
+    override this.Initialize() =
+        this.Styles.Add(FluentTheme())
+        this.RequestedThemeVariant <- Styling.ThemeVariant.Dark
+
+    override this.OnFrameworkInitializationCompleted() =
+        match this.ApplicationLifetime with
+        | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
+            let mainWindow = MainWindow()
+            desktopLifetime.MainWindow <- mainWindow
+        | _ -> ()
+
+module Program =
+
+    GlobalConfig.Json.defaultJsonSerializerOptions <- Utility.serializerOptions
+
+    [<EntryPoint>]
+    let main (args: string[]) =
+        AppBuilder
+            .Configure<App>()
+            .UsePlatformDetect()
+            .UseSkia()
+            .StartWithClassicDesktopLifetime(args)

@@ -9,6 +9,7 @@
     <Compile Include="MetaType.fs" />
     <Compile Include="Database.fs" />
     <Compile Include="Wanikani.fs" />
+    <Compile Include="Main.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project=".paket\Paket.Restore.targets" />

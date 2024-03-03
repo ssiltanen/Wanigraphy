@@ -75,11 +75,9 @@ Dapper.SqlMapper.AddTypeHandler(typeof<Uri>, UriHandler())
 Dapper.FSharp.SQLite.OptionTypes.register ()
 
 let connection =
-    async {
-        let conn = new SqliteConnection("Data Source=turtles.db")
-        do! conn.OpenAsync() |> Async.AwaitTask
-        return conn
-    }
+    let conn = new SqliteConnection("Data Source=turtles.db")
+    conn.Open()
+    conn
 
 let createIfNotExist (conn: SqliteConnection) =
     use cmd = conn.CreateCommand()

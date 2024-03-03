@@ -2,3 +2,7 @@ FsHttp
 FSharp.SystemTextJson
 Microsoft.Data.Sqlite
 Dapper.FSharp
+Avalonia.Desktop
+Avalonia.Themes.Fluent
+Avalonia.FuncUI
+Avalonia.FuncUI.Elmish

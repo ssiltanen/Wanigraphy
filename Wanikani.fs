@@ -234,16 +234,18 @@ module LevelProgression =
 
 module AccessToken =
 
-    let get conn =
+    let tryGet conn =
         firstOrDefault<Table.AccessToken> conn
-        |> Async.bind (
-            Option.map (_.token >> async.Return)
-            >> Option.defaultWith (fun _ ->
-                // Temporary solution to get the token if it is not in DB
-                async {
-                    Console.WriteLine "Input Wanikani Access Token:"
-                    let token = Console.ReadLine()
-                    do! insertOrReplace conn { Table.token = token }
-                    return token
-                })
+        |> Async.map (
+            Option.map (_.token)
+        // >> Option.defaultWith (fun _ ->
+        //     // Temporary solution to get the token if it is not in DB
+        //     async {
+        //         Console.WriteLine "Input Wanikani Access Token:"
+        //         let token = Console.ReadLine()
+        //         do! insertOrReplace conn { Table.token = token }
+        //         return token
+        //     })
         )
+
+let a f b = f b
