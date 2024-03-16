@@ -58,7 +58,7 @@ type MainWindow() as this =
         Elmish.Program.mkProgram Main.init Main.update Main.view
         |> Program.withHost this
         |> Program.withConsoleTrace
-        |> Program.run
+        |> Program.runWithAvaloniaSyncDispatch ()
 
 type App() =
     inherit Application()

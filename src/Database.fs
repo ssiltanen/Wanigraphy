@@ -74,7 +74,7 @@ Dapper.SqlMapper.AddTypeHandler(typeof<Uri>, UriHandler())
 // Map database nulls with Options
 Dapper.FSharp.SQLite.OptionTypes.register ()
 
-let connection =
+let connection () =
     let conn = new SqliteConnection("Data Source=turtles.db")
     conn.Open()
     conn
@@ -83,6 +83,15 @@ let createIfNotExist (conn: SqliteConnection) =
     use cmd = conn.CreateCommand()
     cmd.CommandText <- schema
     cmd.ExecuteNonQueryAsync() |> Async.AwaitTask |> Async.Ignore
+
+let deleteAllRows<'table> (conn: IDbConnection) =
+    delete {
+        for p in table<'table> do
+            deleteAll
+    }
+    |> conn.DeleteAsync
+    |> Async.AwaitTask
+    |> Async.Ignore
 
 let insertOrReplace<'table> (conn: IDbConnection) (insertValue: 'table) =
     insert {
