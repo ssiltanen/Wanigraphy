@@ -127,7 +127,10 @@ module API =
     let getObject<'data> token path =
         request token { GET path }
         |> Request.sendAsync
-        |> Async.bind Response.deserializeJsonAsync<Object<'data>>
+        |> Async.map (Response.expectHttpStatusCode HttpStatusCode.OK)
+        |> Async.bind (function
+            | Ok res -> Response.deserializeJsonAsync<Object<'data>> res
+            | Error expectation -> failwithf "API returned an error response: %A" expectation)
 
     let getResources<'data> token since path =
         let rec paged acc =
@@ -235,17 +238,9 @@ module LevelProgression =
 module AccessToken =
 
     let tryGet conn =
-        firstOrDefault<Table.AccessToken> conn
-        |> Async.map (
-            Option.map (_.token)
-        // >> Option.defaultWith (fun _ ->
-        //     // Temporary solution to get the token if it is not in DB
-        //     async {
-        //         Console.WriteLine "Input Wanikani Access Token:"
-        //         let token = Console.ReadLine()
-        //         do! insertOrReplace conn { Table.token = token }
-        //         return token
-        //     })
-        )
+        firstOrDefault<Table.AccessToken> conn |> Async.map (Option.map (_.token))
 
-let a f b = f b
+    let save conn token =
+        insertOrReplace conn { Table.token = token }
+
+    let delete conn = deleteAllRows<Table.AccessToken> conn

@@ -1,7 +1,7 @@
 STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    Avalonia (11.0.10) - restriction: >= netstandard2.0
+    Avalonia (11.0.10) - restriction: || (>= net461) (>= netstandard2.0)
       Avalonia.BuildServices (>= 0.0.29) - restriction: || (>= net461) (>= netstandard2.0)
       Avalonia.Remote.Protocol (>= 11.0.10) - restriction: || (>= net461) (>= netstandard2.0)
       MicroCom.Runtime (>= 0.11) - restriction: || (>= net461) (>= netstandard2.0)
@@ -36,7 +36,7 @@ NUGET
     Avalonia.Native (11.0.10) - restriction: >= netstandard2.0
       Avalonia (>= 11.0.10) - restriction: >= netstandard2.0
     Avalonia.Remote.Protocol (11.0.10) - restriction: >= netstandard2.0
-    Avalonia.Skia (11.0.10) - restriction: >= netstandard2.0
+    Avalonia.Skia (11.0.10) - restriction: || (>= net461) (>= netstandard2.0)
       Avalonia (>= 11.0.10) - restriction: >= netstandard2.0
       HarfBuzzSharp (>= 7.3) - restriction: >= netstandard2.0
       HarfBuzzSharp.NativeAssets.Linux (>= 7.3) - restriction: >= netstandard2.0
@@ -44,6 +44,11 @@ NUGET
       SkiaSharp (>= 2.88.7) - restriction: >= netstandard2.0
       SkiaSharp.NativeAssets.Linux (>= 2.88.7) - restriction: >= netstandard2.0
       SkiaSharp.NativeAssets.WebAssembly (>= 2.88.7) - restriction: >= netstandard2.0
+    Avalonia.Svg.Skia (11.0.0.17)
+      Avalonia (>= 11.0) - restriction: || (>= net461) (>= netstandard2.0)
+      Avalonia.Skia (>= 11.0) - restriction: || (>= net461) (>= netstandard2.0)
+      SkiaSharp (>= 2.88.6) - restriction: || (>= net461) (>= netstandard2.0)
+      Svg.Skia (>= 1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
     Avalonia.Themes.Fluent (11.0.10)
       Avalonia (>= 11.0.10) - restriction: >= netstandard2.0
     Avalonia.Win32 (11.0.10) - restriction: >= netstandard2.0
@@ -59,13 +64,14 @@ NUGET
       Dapper (>= 2.0.123) - restriction: >= net6.0
       FSharp.Core (>= 6.0.7) - restriction: >= net6.0
     Elmish (4.1) - restriction: >= net6.0
+    ExCSS (4.2.5) - restriction: >= netstandard2.0
     FSharp.Core (8.0.200) - restriction: >= netstandard2.0
     FSharp.SystemTextJson (1.2.42)
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
       System.Text.Json (>= 6.0) - restriction: >= netstandard2.0
     FsHttp (14.5)
       FSharp.Core (>= 5.0.2) - restriction: >= net6.0
-    HarfBuzzSharp (7.3.0.1) - restriction: >= netstandard2.0
+    HarfBuzzSharp (7.3.0.1) - restriction: || (>= net461) (>= netstandard2.0)
       HarfBuzzSharp.NativeAssets.Android (>= 7.3.0.1) - restriction: || (&& (>= monoandroid) (< netstandard1.3)) (>= net6.0-android)
       HarfBuzzSharp.NativeAssets.iOS (>= 7.3.0.1) - restriction: || (&& (< net6.0) (>= xamarinios)) (>= net6.0-ios)
       HarfBuzzSharp.NativeAssets.macOS (>= 7.3.0.1) - restriction: || (&& (< monoandroid) (>= net6.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (>= netstandard1.3) (< netstandard2.0) (< uap10.1) (< xamarintvos) (< xamarinwatchos)) (>= net462) (&& (< net6.0) (>= netcoreapp3.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net6.0) (>= xamarinmac)) (>= net6.0-macos) (&& (< netcoreapp3.1) (>= netstandard2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos))
@@ -90,23 +96,28 @@ NUGET
       SQLitePCLRaw.bundle_e_sqlite3 (>= 2.1.6) - restriction: >= netstandard2.0
     Microsoft.Data.Sqlite.Core (8.0.3) - restriction: >= netstandard2.0
       SQLitePCLRaw.core (>= 2.1.6) - restriction: >= netstandard2.0
-    SkiaSharp (2.88.7) - restriction: >= netstandard2.0
+    ShimSkiaSharp (1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+    SkiaSharp (2.88.7) - restriction: || (>= net461) (>= netstandard2.0)
       SkiaSharp.NativeAssets.Android (>= 2.88.7) - restriction: || (&& (>= monoandroid) (< netstandard1.3)) (>= net6.0-android)
       SkiaSharp.NativeAssets.iOS (>= 2.88.7) - restriction: || (&& (< net6.0) (>= xamarinios)) (>= net6.0-ios)
       SkiaSharp.NativeAssets.macOS (>= 2.88.7) - restriction: || (&& (< monoandroid) (>= net6.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (>= netstandard1.3) (< netstandard2.0) (< uap10.1) (< xamarintvos) (< xamarinwatchos)) (>= net462) (&& (< net6.0) (>= netcoreapp3.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net6.0) (>= xamarinmac)) (>= net6.0-macos) (&& (< netcoreapp3.1) (>= netstandard2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos))
       SkiaSharp.NativeAssets.tvOS (>= 2.88.7) - restriction: || (&& (< net6.0) (>= xamarintvos)) (>= net6.0-tvos)
       SkiaSharp.NativeAssets.watchOS (>= 2.88.7) - restriction: >= xamarinwatchos
       SkiaSharp.NativeAssets.Win32 (>= 2.88.7) - restriction: || (&& (< monoandroid) (>= net6.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (>= netstandard1.3) (< netstandard2.0) (< uap10.1) (< xamarintvos) (< xamarinwatchos)) (>= net462) (&& (< net6.0) (>= netcoreapp3.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< netcoreapp3.1) (>= netstandard2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos))
+      System.IO.UnmanagedMemoryStream (>= 4.3) - restriction: && (< monoandroid) (< net462) (>= netstandard1.3) (< netstandard2.0) (< uap10.1) (< xamarintvos) (< xamarinwatchos)
       System.Memory (>= 4.5.5) - restriction: || (&& (< monoandroid) (>= netstandard1.3) (< netstandard2.0) (< xamarintvos) (< xamarinwatchos)) (>= net462) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos)) (>= tizen4.0) (>= uap10.1)
-    SkiaSharp.NativeAssets.Android (2.88.7) - restriction: || (&& (>= monoandroid) (< netstandard1.3) (>= netstandard2.0)) (>= net6.0-android)
-    SkiaSharp.NativeAssets.iOS (2.88.7) - restriction: || (&& (< net6.0) (>= xamarinios)) (>= net6.0-ios)
+    SkiaSharp.HarfBuzz (2.88.7) - restriction: || (>= net461) (>= netstandard2.0)
+      HarfBuzzSharp (>= 7.3.0.1) - restriction: >= netstandard1.3
+      SkiaSharp (>= 2.88.7) - restriction: >= netstandard1.3
+    SkiaSharp.NativeAssets.Android (2.88.7) - restriction: || (&& (>= monoandroid) (>= net461) (< netstandard1.3)) (&& (>= monoandroid) (< netstandard1.3) (>= netstandard2.0)) (>= net6.0-android)
+    SkiaSharp.NativeAssets.iOS (2.88.7) - restriction: || (&& (>= net461) (>= xamarinios)) (&& (< net6.0) (>= xamarinios)) (>= net6.0-ios)
     SkiaSharp.NativeAssets.Linux (2.88.7) - restriction: >= netstandard2.0
       SkiaSharp (>= 2.88.7) - restriction: >= netstandard1.3
-    SkiaSharp.NativeAssets.macOS (2.88.7) - restriction: || (&& (< monoandroid) (>= net6.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= net462) (>= netstandard2.0)) (&& (< net6.0) (>= netcoreapp3.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net6.0) (>= xamarinmac)) (>= net6.0-macos) (&& (< netcoreapp3.1) (>= netstandard2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos))
-    SkiaSharp.NativeAssets.tvOS (2.88.7) - restriction: || (&& (< net6.0) (>= netstandard2.0) (>= xamarintvos)) (>= net6.0-tvos)
-    SkiaSharp.NativeAssets.watchOS (2.88.7) - restriction: && (>= netstandard2.0) (>= xamarinwatchos)
+    SkiaSharp.NativeAssets.macOS (2.88.7) - restriction: || (&& (< monoandroid) (>= net6.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= net461) (>= net6.0)) (&& (>= net461) (>= netcoreapp3.1)) (&& (>= net461) (>= netstandard2.0)) (&& (>= net461) (< netstandard2.0)) (&& (>= net461) (>= netstandard2.1)) (&& (>= net461) (>= xamarinmac)) (>= net462) (&& (< net6.0) (>= netcoreapp3.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net6.0) (>= xamarinmac)) (>= net6.0-macos) (&& (< netcoreapp3.1) (>= netstandard2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos))
+    SkiaSharp.NativeAssets.tvOS (2.88.7) - restriction: || (&& (>= net461) (>= xamarintvos)) (&& (< net6.0) (>= netstandard2.0) (>= xamarintvos)) (>= net6.0-tvos)
+    SkiaSharp.NativeAssets.watchOS (2.88.7) - restriction: || (&& (>= net461) (>= xamarinwatchos)) (&& (>= netstandard2.0) (>= xamarinwatchos))
     SkiaSharp.NativeAssets.WebAssembly (2.88.7) - restriction: >= netstandard2.0
-    SkiaSharp.NativeAssets.Win32 (2.88.7) - restriction: || (&& (< monoandroid) (>= net6.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= net462) (>= netstandard2.0)) (&& (< net6.0) (>= netcoreapp3.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< netcoreapp3.1) (>= netstandard2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos))
+    SkiaSharp.NativeAssets.Win32 (2.88.7) - restriction: || (&& (< monoandroid) (>= net6.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= net461) (>= net6.0)) (&& (>= net461) (>= netcoreapp3.1)) (&& (>= net461) (>= netstandard2.0)) (&& (>= net461) (< netstandard2.0)) (&& (>= net461) (>= netstandard2.1)) (>= net462) (&& (< net6.0) (>= netcoreapp3.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< netcoreapp3.1) (>= netstandard2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos))
     SQLitePCLRaw.bundle_e_sqlite3 (2.1.8) - restriction: >= netstandard2.0
       SQLitePCLRaw.lib.e_sqlite3 (>= 2.1.8) - restriction: || (&& (< monoandroid9.0) (< net6.0-tvos) (>= netstandard2.0) (< xamarinios)) (>= net461) (>= net6.0-ios)
       SQLitePCLRaw.lib.e_sqlite3.android (>= 2.1.8) - restriction: >= monoandroid9.0
@@ -130,19 +141,33 @@ NUGET
       SQLitePCLRaw.core (>= 2.1.8) - restriction: >= netstandard2.0
     SQLitePCLRaw.provider.internal (2.1.8) - restriction: || (>= net6.0-tvos) (>= xamarinios)
       SQLitePCLRaw.core (>= 2.1.8) - restriction: >= netstandard2.0
-    System.Buffers (4.5.1) - restriction: || (&& (>= monoandroid) (< netstandard1.1) (>= netstandard2.0)) (&& (< monoandroid) (< netstandard1.1) (>= netstandard2.0) (< win8)) (&& (>= monotouch) (>= netstandard2.0)) (&& (< net45) (< netcoreapp2.0) (>= netstandard2.0)) (&& (>= net461) (>= netstandard2.0)) (&& (>= net462) (>= netstandard2.0)) (&& (>= net462) (>= xamarinios)) (&& (>= net462) (>= xamarinmac)) (&& (< net6.0) (>= netstandard2.0)) (&& (< net6.0) (>= xamarinios)) (&& (< net6.0) (>= xamarinmac)) (&& (< netstandard1.1) (>= netstandard2.0) (>= win8))
+    Svg.Custom (1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+      ExCSS (>= 4.2.3) - restriction: >= netstandard2.0
+      System.Memory (>= 4.5.5) - restriction: && (< net6.0) (>= netstandard2.0)
+    Svg.Model (1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+      ShimSkiaSharp (>= 1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+      Svg.Custom (>= 1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+    Svg.Skia (1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+      SkiaSharp (>= 2.88.6) - restriction: || (>= net461) (>= netstandard2.0)
+      SkiaSharp.HarfBuzz (>= 2.88.6) - restriction: || (>= net461) (>= netstandard2.0)
+      Svg.Custom (>= 1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+      Svg.Model (>= 1.0.0.17) - restriction: || (>= net461) (>= netstandard2.0)
+    System.Buffers (4.5.1) - restriction: || (&& (>= monoandroid) (< netstandard1.1) (>= netstandard2.0)) (&& (< monoandroid) (< netstandard1.1) (>= netstandard2.0) (< win8)) (&& (>= monotouch) (>= net461)) (&& (>= monotouch) (>= netstandard2.0)) (&& (< net45) (< netcoreapp2.0) (>= netstandard2.0) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos)) (&& (>= net461) (< netstandard1.1)) (&& (>= net461) (>= netstandard2.0)) (&& (>= net461) (< netstandard2.0)) (&& (>= net461) (>= tizen4.0)) (&& (>= net461) (>= uap10.1)) (&& (>= net461) (>= xamarinios)) (&& (>= net461) (>= xamarinmac)) (>= net462) (&& (< net6.0) (>= netstandard2.0)) (&& (< netstandard1.1) (>= netstandard2.0) (>= win8)) (&& (>= netstandard2.0) (>= tizen4.0)) (&& (>= netstandard2.0) (>= uap10.1)) (&& (< netstandard2.1) (>= xamarinios)) (&& (< netstandard2.1) (>= xamarinmac)) (&& (>= tizen4.0) (>= xamarinios)) (&& (>= tizen4.0) (>= xamarinmac)) (&& (>= uap10.1) (>= xamarinios)) (&& (>= uap10.1) (>= xamarinmac))
     System.ComponentModel.Annotations (5.0) - restriction: >= netstandard2.0
+    System.IO.FileSystem.Primitives (4.3) - restriction: && (>= net461) (< net462) (< netstandard2.0)
     System.IO.Pipelines (8.0) - restriction: >= netstandard2.0
       System.Buffers (>= 4.5.1) - restriction: || (>= net462) (&& (< net6.0) (>= netstandard2.0))
       System.Memory (>= 4.5.5) - restriction: || (>= net462) (&& (< net6.0) (>= netstandard2.0))
       System.Threading.Tasks.Extensions (>= 4.5.4) - restriction: || (>= net462) (&& (< net6.0) (>= netstandard2.0))
-    System.Memory (4.5.5) - restriction: >= netstandard2.0
+    System.IO.UnmanagedMemoryStream (4.3) - restriction: && (>= net461) (< net462) (< netstandard2.0)
+      System.IO.FileSystem.Primitives (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (>= net46)
+    System.Memory (4.5.5) - restriction: || (>= net461) (>= netstandard2.0)
       System.Buffers (>= 4.5.1) - restriction: || (&& (>= monoandroid) (< netstandard1.1)) (&& (< monoandroid) (< net45) (>= netstandard1.1) (< netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (< netstandard1.1) (>= portable-net45+win8+wpa81) (< win8)) (>= monotouch) (&& (>= net45) (< netstandard2.0)) (&& (< net45) (< netcoreapp2.0) (>= netstandard2.0)) (>= net461) (&& (< netstandard1.1) (>= win8)) (&& (< netstandard2.0) (< uap10.1) (>= wpa81)) (>= xamarinios) (>= xamarinmac) (>= xamarintvos) (>= xamarinwatchos)
       System.Numerics.Vectors (>= 4.4) - restriction: && (< net45) (< netcoreapp2.0) (>= netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
       System.Numerics.Vectors (>= 4.5) - restriction: >= net461
       System.Runtime.CompilerServices.Unsafe (>= 4.5.3) - restriction: || (&& (>= monoandroid) (< netstandard1.1)) (&& (< monoandroid) (< net45) (>= netstandard1.1) (< netstandard2.0) (< win8) (< wpa81)) (&& (< monoandroid) (>= netcoreapp2.0) (< netcoreapp2.1)) (&& (< monoandroid) (< netstandard1.1) (>= portable-net45+win8+wpa81) (< win8)) (>= monotouch) (&& (>= net45) (< netstandard2.0)) (&& (< net45) (< netcoreapp2.0) (>= netstandard2.0)) (>= net461) (&& (< netstandard1.1) (>= win8)) (&& (< netstandard2.0) (>= wpa81)) (>= uap10.1) (>= xamarinios) (>= xamarinmac) (>= xamarintvos) (>= xamarinwatchos)
-    System.Numerics.Vectors (4.5) - restriction: >= netstandard2.0
-    System.Runtime.CompilerServices.Unsafe (6.0) - restriction: || (&& (>= monoandroid) (< netstandard1.1) (>= netstandard2.0)) (&& (< monoandroid) (>= netcoreapp2.0) (< netcoreapp2.1)) (&& (< monoandroid) (>= netcoreapp2.0) (< netstandard1.0)) (&& (< monoandroid) (>= netcoreapp2.0) (< netstandard2.0) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< netstandard1.0) (>= netstandard2.0) (< win8)) (&& (< monoandroid) (< netstandard1.1) (>= netstandard2.0) (< win8)) (&& (>= monotouch) (>= netstandard2.0)) (&& (>= net45) (>= netcoreapp2.0) (< netstandard2.0)) (&& (>= net461) (>= netcoreapp2.0)) (&& (>= net461) (>= netstandard2.0)) (&& (>= net462) (>= netcoreapp2.0)) (&& (>= net462) (>= netstandard2.0)) (&& (>= net462) (>= xamarinios)) (&& (>= net462) (>= xamarinmac)) (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netcoreapp2.0)) (&& (< net6.0) (>= netstandard2.0)) (&& (< net6.0) (>= xamarinios)) (&& (< net6.0) (>= xamarinmac)) (&& (>= netcoreapp2.0) (< netcoreapp2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netcoreapp2.0) (< netstandard1.0) (>= win8)) (&& (>= netcoreapp2.0) (< netstandard2.0) (>= wpa81)) (&& (>= netcoreapp2.0) (>= wp8)) (&& (< netcoreapp2.0) (>= netstandard2.0)) (&& (< netstandard1.0) (>= netstandard2.0) (>= win8)) (&& (< netstandard1.1) (>= netstandard2.0) (>= win8)) (&& (>= netstandard2.0) (>= uap10.1)) (&& (>= netstandard2.0) (>= wp8))
+    System.Numerics.Vectors (4.5) - restriction: || (>= net461) (>= netstandard2.0)
+    System.Runtime.CompilerServices.Unsafe (6.0) - restriction: || (&& (>= monoandroid) (< netstandard1.1) (>= netstandard2.0)) (&& (< monoandroid) (>= netcoreapp2.0) (< netcoreapp2.1) (< netstandard2.1) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (>= netcoreapp2.0) (< netstandard1.0)) (&& (< monoandroid) (>= netcoreapp2.0) (< netstandard2.0) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< netstandard1.0) (>= netstandard2.0) (< win8)) (&& (< monoandroid) (< netstandard1.1) (>= netstandard2.0) (< win8)) (&& (>= monotouch) (>= net461)) (&& (>= monotouch) (>= netstandard2.0)) (&& (>= net45) (>= netcoreapp2.0) (< netstandard2.0)) (&& (>= net461) (>= netcoreapp2.0)) (&& (>= net461) (< netstandard1.1)) (&& (>= net461) (>= netstandard2.0)) (&& (>= net461) (< netstandard2.0)) (&& (>= net461) (>= tizen4.0)) (&& (>= net461) (>= uap10.1)) (&& (>= net461) (>= xamarinios)) (&& (>= net461) (>= xamarinmac)) (>= net462) (&& (>= net6.0) (< net7.0)) (&& (< net6.0) (>= netcoreapp2.0)) (&& (< net6.0) (>= netstandard2.0)) (&& (>= netcoreapp2.0) (< netcoreapp2.1) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= netcoreapp2.0) (< netstandard1.0) (>= win8)) (&& (>= netcoreapp2.0) (< netstandard2.0) (>= wpa81)) (&& (>= netcoreapp2.0) (>= tizen4.0)) (&& (>= netcoreapp2.0) (>= uap10.1)) (&& (>= netcoreapp2.0) (>= wp8)) (&& (< netcoreapp2.0) (>= netstandard2.0)) (&& (< netstandard1.0) (>= netstandard2.0) (>= win8)) (&& (< netstandard1.1) (>= netstandard2.0) (>= win8)) (&& (>= netstandard2.0) (>= tizen4.0)) (&& (>= netstandard2.0) (>= uap10.1)) (&& (>= netstandard2.0) (>= wp8)) (&& (< netstandard2.1) (>= xamarinios)) (&& (< netstandard2.1) (>= xamarinmac)) (&& (>= tizen4.0) (>= xamarinios)) (&& (>= tizen4.0) (>= xamarinmac)) (&& (>= uap10.1) (>= xamarinios)) (&& (>= uap10.1) (>= xamarinmac))
     System.Runtime.InteropServices.NFloat.Internal (6.0.1) - restriction: || (>= net6.0-ios) (>= net6.0-tvos)
     System.Text.Encodings.Web (8.0) - restriction: >= netstandard2.0
       System.Buffers (>= 4.5.1) - restriction: || (>= net462) (&& (< net6.0) (>= netstandard2.0))

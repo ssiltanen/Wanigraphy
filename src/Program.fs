@@ -44,23 +44,23 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
 open Avalonia.Controls.ApplicationLifetimes
 
-open Main
+open App
 
 type MainWindow() as this =
     inherit HostWindow()
 
     do
         base.Title <- "Wanigraphy"
-        // base.Icon <- WindowIcon(System.IO.Path.Combine("Assets", "Icons", "icon.ico"))
+        base.Icon <- WindowIcon(System.IO.Path.Combine("Assets", "Icons", "turtle.ico"))
         base.Height <- 2000.0
         base.Width <- 2000.0
 
-        Elmish.Program.mkProgram Main.init Main.update Main.view
+        Elmish.Program.mkProgram App.init App.update App.view
         |> Program.withHost this
         |> Program.withConsoleTrace
-        |> Program.run
+        |> Program.runWithAvaloniaSyncDispatch ()
 
-type App() =
+type Wanigraphy() =
     inherit Application()
 
     override this.Initialize() =
@@ -81,7 +81,7 @@ module Program =
     [<EntryPoint>]
     let main (args: string[]) =
         AppBuilder
-            .Configure<App>()
+            .Configure<Wanigraphy>()
             .UsePlatformDetect()
             .UseSkia()
             .StartWithClassicDesktopLifetime(args)

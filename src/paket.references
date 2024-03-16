@@ -6,3 +6,4 @@ Avalonia.Desktop
 Avalonia.Themes.Fluent
 Avalonia.FuncUI
 Avalonia.FuncUI.Elmish
+Avalonia.Svg.Skia
