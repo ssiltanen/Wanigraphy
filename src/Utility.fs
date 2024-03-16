@@ -20,3 +20,6 @@ let serializerOptions =
 
 let serialize data =
     JsonSerializer.Serialize(data, serializerOptions)
+
+let deserialize<'T> (data: string) =
+    JsonSerializer.Deserialize<'T>(data, serializerOptions)
