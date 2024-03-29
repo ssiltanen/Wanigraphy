@@ -1,6 +1,11 @@
 source https://api.nuget.org/v3/index.json
 
 storage: none
+nuget Avalonia.Desktop
+nuget Avalonia.FuncUI
+nuget Avalonia.FuncUI.Elmish
+nuget Avalonia.Svg.Skia
+nuget Avalonia.Themes.Fluent
 nuget Dapper.FSharp
 nuget FSharp.SystemTextJson
 nuget FsHttp

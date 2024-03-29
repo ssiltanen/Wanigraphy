@@ -6,9 +6,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Utility.fs" />
+    <Compile Include="MetaType.fs" />
     <Compile Include="Database.fs" />
     <Compile Include="Wanikani.fs" />
+    <Compile Include="ElmishUtility.fs" />
+    <Compile Include="App.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <Import Project=".paket\Paket.Restore.targets" />
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**"/>
+  </ItemGroup>
+  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
