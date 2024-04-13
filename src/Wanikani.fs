@@ -205,6 +205,8 @@ module Assignment =
 
     let getCached = getAllSaved<Assignment>
 
+    let delete = deleteAllRows<Assignment>
+
 module Review =
 
     let request token since =
@@ -214,6 +216,8 @@ module Review =
         fetchAndSaveChanges conn (request token) insertOrReplaceMultiple
 
     let getCached = getAllSaved<Review>
+
+    let delete = deleteAllRows<Review>
 
 module ReviewStatistics =
 
@@ -225,6 +229,8 @@ module ReviewStatistics =
 
     let getCached = getAllSaved<ReviewStatistics>
 
+    let delete = deleteAllRows<ReviewStatistics>
+
 module LevelProgression =
 
     let request token since =
@@ -235,6 +241,8 @@ module LevelProgression =
 
     let getCached = getAllSaved<LevelProgression>
 
+    let delete = deleteAllRows<LevelProgression>
+
 module AccessToken =
 
     let tryGet conn =
@@ -244,3 +252,12 @@ module AccessToken =
         insertOrReplace conn { Table.token = token }
 
     let delete conn = deleteAllRows<Table.AccessToken> conn
+
+let deleteStoredData conn =
+    [ Assignment.delete
+      Review.delete
+      ReviewStatistics.delete
+      LevelProgression.delete
+      AccessToken.delete ]
+    |> List.map (fun op -> op conn)
+    |> Async.Parallel
