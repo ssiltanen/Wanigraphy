@@ -81,23 +81,23 @@ let view (state: State) (dispatch) =
                         [ StackPanel.orientation Orientation.Horizontal
                           StackPanel.horizontalAlignment HorizontalAlignment.Right
                           StackPanel.dock Dock.Top
-                          StackPanel.margin 10.0
+                          StackPanel.margin 10
                           StackPanel.children
                               [ Button.create
                                     [ Button.content (
                                           StackPanel.create
                                               [ StackPanel.orientation Orientation.Horizontal
-                                                StackPanel.spacing 10.0
+                                                StackPanel.spacing 10
                                                 StackPanel.children
                                                     [ TextBlock.create
                                                           [ TextBlock.text user.data.username
                                                             TextBlock.verticalAlignment VerticalAlignment.Center
-                                                            TextBlock.fontSize 16.0 ]
+                                                            TextBlock.fontSize 16 ]
 
                                                       Image.create
                                                           [ Image.source Icons.user.Value
-                                                            Image.height 25.0
-                                                            Image.width 25.0 ] ] ]
+                                                            Image.height 25
+                                                            Image.width 25 ] ] ]
                                       )
                                       Button.flyout (
                                           MenuFlyout.create
@@ -112,10 +112,10 @@ let view (state: State) (dispatch) =
                         [ StackPanel.orientation Orientation.Horizontal
                           StackPanel.horizontalAlignment HorizontalAlignment.Center
                           StackPanel.verticalAlignment VerticalAlignment.Center
-                          StackPanel.spacing 10.0
+                          StackPanel.spacing 10
                           StackPanel.children
                               [ TextBlock.create
-                                    [ TextBlock.fontSize 48.0
+                                    [ TextBlock.fontSize 48
                                       TextBlock.verticalAlignment VerticalAlignment.Center
                                       TextBlock.text $"Welcome {user.data.username}" ] ] ] ]
 
@@ -136,11 +136,11 @@ let view (state: State) (dispatch) =
                         [ StackPanel.orientation Orientation.Horizontal
                           StackPanel.horizontalAlignment HorizontalAlignment.Center
                           StackPanel.verticalAlignment VerticalAlignment.Center
-                          StackPanel.spacing 10.0
+                          StackPanel.spacing 10
                           StackPanel.children
                               [ TextBox.create
                                     [ TextBox.passwordChar '*'
-                                      TextBox.width 400.0
+                                      TextBox.width 400
                                       TextBox.verticalAlignment VerticalAlignment.Top
                                       TextBox.onTextChanged (fun input ->
                                           if String.IsNullOrWhiteSpace input |> not then
@@ -156,12 +156,12 @@ let view (state: State) (dispatch) =
                         [ StackPanel.orientation Orientation.Horizontal
                           StackPanel.horizontalAlignment HorizontalAlignment.Center
                           StackPanel.verticalAlignment VerticalAlignment.Center
-                          StackPanel.spacing 10.0
-                          StackPanel.height 60.0
+                          StackPanel.spacing 10
+                          StackPanel.height 60
                           StackPanel.children
                               [ TextBox.create
                                     [ TextBox.passwordChar '*'
-                                      TextBox.width 400.0
+                                      TextBox.width 400
                                       TextBox.errors [ "Invalid token" ]
                                       TextBox.verticalAlignment VerticalAlignment.Top
                                       TextBox.onTextChanged (fun input ->
