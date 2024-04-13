@@ -29,7 +29,7 @@ type State =
       tokenInput: string option
       userFetchAttempt: AsyncOp<Object<User>> }
 
-let conn = Database.connection ()
+let conn = Database.connection
 
 let init () =
     { token = None

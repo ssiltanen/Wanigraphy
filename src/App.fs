@@ -30,7 +30,7 @@ type State =
       login: Login.State
       user: UserOverview.State option }
 
-let conn = Database.connection ()
+let conn = Database.connection
 
 let init () =
     let loginState, loginCmd = Login.init ()

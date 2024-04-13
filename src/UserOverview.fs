@@ -20,18 +20,68 @@ open MetaType
 type Msg =
     | Logout
     | ClearDatabase
+    | SummaryFetchAttempt of AsyncOp<Object<Summary>>
+    | AssignmentFetchAttempt of AsyncOp<Resource<Assignment>[]>
+    | ReviewFetchAttempt of AsyncOp<Resource<Review>[]>
+    | ReviewStatisticsFetchAttempt of AsyncOp<Resource<ReviewStatistics>[]>
+    | LevelProgressionFetchAttempt of AsyncOp<Resource<LevelProgression>[]>
 
-type State = { token: string; user: Object<User> }
+type State =
+    { token: string
+      user: Object<User>
+      summary: AsyncOp<Object<Summary>>
+      assignments: AsyncOp<Resource<Assignment>[]>
+      reviews: AsyncOp<Resource<Review>[]>
+      reviewStatistics: AsyncOp<Resource<ReviewStatistics>[]>
+      levelProgression: AsyncOp<Resource<LevelProgression>[]> }
 
-let conn = Database.connection ()
+let conn = Database.connection
 
 let init token user =
-    { token = token; user = user }, Cmd.none
+    { token = token
+      user = user
+      summary = InProgress
+      assignments = InProgress
+      reviews = InProgress
+      reviewStatistics = InProgress
+      levelProgression = InProgress },
+    Cmd.batch
+        [ Cmd.OfAsync.either Summary.request token (Finished >> SummaryFetchAttempt) (Error >> SummaryFetchAttempt)
+
+          Cmd.OfAsync.either
+              (fun _ -> Assignment.refreshAndRead conn token)
+              ()
+              (Finished >> AssignmentFetchAttempt)
+              (Error >> AssignmentFetchAttempt)
+
+          Cmd.OfAsync.either
+              (fun _ -> Review.refreshAndRead conn token)
+              ()
+              (Finished >> ReviewFetchAttempt)
+              (Error >> ReviewFetchAttempt)
+
+          Cmd.OfAsync.either
+              (fun _ -> ReviewStatistics.refreshAndRead conn token)
+              ()
+              (Finished >> ReviewStatisticsFetchAttempt)
+              (Error >> ReviewStatisticsFetchAttempt)
+
+          Cmd.OfAsync.either
+              (fun _ -> LevelProgression.refreshAndRead conn token)
+              ()
+              (Finished >> LevelProgressionFetchAttempt)
+              (Error >> ReviewStatisticsFetchAttempt) ]
 
 let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     match msg with
     | Logout -> state, Cmd.none // Handled on App.fs
     | ClearDatabase -> state, Cmd.OfAsync.perform deleteStoredData conn (fun _ -> Logout)
+    | SummaryFetchAttempt result -> { state with summary = result }, Cmd.none
+    | AssignmentFetchAttempt result -> { state with assignments = result }, Cmd.none
+    | ReviewFetchAttempt result -> { state with reviews = result }, Cmd.none
+    | ReviewStatisticsFetchAttempt result -> { state with reviewStatistics = result }, Cmd.none
+    | LevelProgressionFetchAttempt result -> { state with levelProgression = result }, Cmd.none
+
 
 [<RequireQualifiedAccess>]
 module Icons =

@@ -205,6 +205,9 @@ module Assignment =
 
     let getCached = getAllSaved<Assignment>
 
+    let refreshAndRead conn token =
+        refresh conn token |> Async.bind (fun _ -> getCached conn)
+
     let delete = deleteAllRows<Assignment>
 
 module Review =
@@ -216,6 +219,9 @@ module Review =
         fetchAndSaveChanges conn (request token) insertOrReplaceMultiple
 
     let getCached = getAllSaved<Review>
+
+    let refreshAndRead conn token =
+        refresh conn token |> Async.bind (fun _ -> getCached conn)
 
     let delete = deleteAllRows<Review>
 
@@ -229,6 +235,9 @@ module ReviewStatistics =
 
     let getCached = getAllSaved<ReviewStatistics>
 
+    let refreshAndRead conn token =
+        refresh conn token |> Async.bind (fun _ -> getCached conn)
+
     let delete = deleteAllRows<ReviewStatistics>
 
 module LevelProgression =
@@ -240,6 +249,9 @@ module LevelProgression =
         fetchAndSaveChanges conn (request token) insertOrReplaceMultiple
 
     let getCached = getAllSaved<LevelProgression>
+
+    let refreshAndRead conn token =
+        refresh conn token |> Async.bind (fun _ -> getCached conn)
 
     let delete = deleteAllRows<LevelProgression>
 
