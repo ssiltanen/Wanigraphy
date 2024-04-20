@@ -74,7 +74,7 @@ Dapper.SqlMapper.AddTypeHandler(typeof<Uri>, UriHandler())
 // Map database nulls with Options
 Dapper.FSharp.SQLite.OptionTypes.register ()
 
-let connection () =
+let connection =
     let conn = new SqliteConnection("Data Source=turtles.db")
     conn.Open()
     conn
