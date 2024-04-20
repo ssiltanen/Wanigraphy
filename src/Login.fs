@@ -101,23 +101,28 @@ let inputTokenView (state: State) (dispatch: Msg -> unit) (hasErrors: bool) : IV
                       Button.content "Login" ] ] ]
 
 let view (state: State) (dispatch: Msg -> unit) =
-    DockPanel.create
-        [ DockPanel.children (
-              match state.userFetchAttempt, state.token with
-              | Finished user, Some token -> []
+    Grid.create
+        [ Grid.children
+              [ StackPanel.create
+                    [ StackPanel.children
+                          [ DockPanel.create
+                                [ DockPanel.background Color.background
+                                  DockPanel.children (
+                                      match state.userFetchAttempt, state.token with
+                                      | Finished user, Some token -> []
 
-              | Finished user, None ->
-                  [ TextBlock.create
-                        [ TextBlock.text "Unexpected error"
-                          TextBlock.verticalAlignment VerticalAlignment.Center ] ]
+                                      | Finished user, None ->
+                                          [ TextBlock.create
+                                                [ TextBlock.text "Unexpected error"
+                                                  TextBlock.verticalAlignment VerticalAlignment.Center ] ]
 
-              | InProgress, _
-              | NotStarted, Some _ ->
-                  [ TextBlock.create
-                        [ TextBlock.text "Loading"
-                          TextBlock.horizontalAlignment HorizontalAlignment.Center
-                          TextBlock.verticalAlignment VerticalAlignment.Center ] ]
+                                      | InProgress, _
+                                      | NotStarted, Some _ ->
+                                          [ TextBlock.create
+                                                [ TextBlock.text "Loading"
+                                                  TextBlock.horizontalAlignment HorizontalAlignment.Center
+                                                  TextBlock.verticalAlignment VerticalAlignment.Center ] ]
 
-              | NotStarted, None -> [ inputTokenView state dispatch false ]
-              | Error ex, _ -> [ inputTokenView state dispatch true ]
-          ) ]
+                                      | NotStarted, None -> [ inputTokenView state dispatch false ]
+                                      | Error ex, _ -> [ inputTokenView state dispatch true ]
+                                  ) ] ] ] ] ]

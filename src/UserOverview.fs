@@ -9,7 +9,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.FuncUI.DSL
 open Avalonia.Controls
 open Avalonia.Layout
-open Avalonia.Media.Imaging
+open Avalonia.Media
 open Avalonia.Platform
 open Avalonia.Svg.Skia
 open ElmishUtility
@@ -18,6 +18,8 @@ open Wanikani
 open MetaType
 
 type Msg =
+    | OpenSplitViewPane
+    | CloseSplitViewPane
     | Logout
     | ClearDatabase
     | SummaryFetchAttempt of AsyncOp<Object<Summary>>
@@ -27,7 +29,8 @@ type Msg =
     | LevelProgressionFetchAttempt of AsyncOp<Resource<LevelProgression>[]>
 
 type State =
-    { token: string
+    { isPaneOpen: bool
+      token: string
       user: Object<User>
       summary: AsyncOp<Object<Summary>>
       assignments: AsyncOp<Resource<Assignment>[]>
@@ -38,7 +41,8 @@ type State =
 let conn = Database.connection
 
 let init token user =
-    { token = token
+    { isPaneOpen = false
+      token = token
       user = user
       summary = InProgress
       assignments = InProgress
@@ -74,6 +78,8 @@ let init token user =
 
 let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     match msg with
+    | OpenSplitViewPane -> { state with isPaneOpen = true }, Cmd.none
+    | CloseSplitViewPane -> { state with isPaneOpen = false }, Cmd.none
     | Logout -> state, Cmd.none // Handled on App.fs
     | ClearDatabase -> state, Cmd.OfAsync.perform deleteStoredData conn (fun _ -> Logout)
     | SummaryFetchAttempt result -> { state with summary = result }, Cmd.none
@@ -82,53 +88,87 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     | ReviewStatisticsFetchAttempt result -> { state with reviewStatistics = result }, Cmd.none
     | LevelProgressionFetchAttempt result -> { state with levelProgression = result }, Cmd.none
 
+let view (state: State) (dispatch: Msg -> unit) =
+    Grid.create
+        [ Grid.background Color.background
+          Grid.children
+              [ SplitView.create
+                    [ SplitView.panePlacement SplitViewPanePlacement.Left
+                      SplitView.paneBackground Color.primary
+                      SplitView.openPaneLength 250
+                      SplitView.compactPaneLengthProperty 60
+                      SplitView.isPaneOpen state.isPaneOpen
+                      SplitView.displayMode SplitViewDisplayMode.CompactOverlay
+                      SplitView.useLightDismissOverlayMode true
+                      SplitView.onPointerEntered (fun _ -> dispatch OpenSplitViewPane)
+                      SplitView.onPointerExited (fun _ -> dispatch CloseSplitViewPane)
 
-[<RequireQualifiedAccess>]
-module Icons =
-    let user =
-        lazy new SvgImage(Source = SvgSource.Load("avares://Wanigraphy/Assets/Icons/turtle.svg", null))
 
-let view ({ user = user }: State) (dispatch: Msg -> unit) =
-    DockPanel.create
-        [ DockPanel.children
-              [ StackPanel.create
-                    [ StackPanel.orientation Orientation.Horizontal
-                      StackPanel.horizontalAlignment HorizontalAlignment.Right
-                      StackPanel.dock Dock.Top
-                      StackPanel.margin 10
-                      StackPanel.children
-                          [ Button.create
-                                [ Button.content (
-                                      StackPanel.create
-                                          [ StackPanel.orientation Orientation.Horizontal
+                      Grid.create
+                          [ // Grid.showGridLines true
+                            Grid.rowDefinitions "10, auto, 30, auto, *, auto"
+                            Grid.columnDefinitions "10, *, 10"
+                            Grid.children (
+                                match state.isPaneOpen with
+                                | false ->
+                                    [ Image.create
+                                          [ Grid.row 1
+                                            Grid.column 1
+                                            Image.horizontalAlignment HorizontalAlignment.Center
+                                            Image.source Icons.user.Value
+                                            Image.height 40
+                                            Image.width 40 ] ]
+                                | true ->
+                                    [ StackPanel.create
+                                          [ Grid.row 1
+                                            Grid.column 1
+                                            StackPanel.margin 0
+                                            StackPanel.orientation Orientation.Horizontal
                                             StackPanel.spacing 10
                                             StackPanel.children
-                                                [ TextBlock.create
-                                                      [ TextBlock.text user.data.username
-                                                        TextBlock.verticalAlignment VerticalAlignment.Center
-                                                        TextBlock.fontSize 16 ]
+                                                [ Image.create
+                                                      [ Image.horizontalAlignment HorizontalAlignment.Center
+                                                        Image.source Icons.user.Value
+                                                        Image.height 40
+                                                        Image.width 40 ]
+                                                  TextBlock.create
+                                                      [ TextBlock.verticalAlignment VerticalAlignment.Bottom
+                                                        TextBlock.fontSize 28
+                                                        TextBlock.fontWeight FontWeight.Bold
+                                                        TextBlock.text "Wanigraphy" ] ] ]
 
-                                                  Image.create
-                                                      [ Image.source Icons.user.Value; Image.height 25; Image.width 25 ] ] ]
-                                  )
-                                  Button.flyout (
-                                      MenuFlyout.create
-                                          [ MenuFlyout.placement PlacementMode.BottomEdgeAlignedRight
-                                            MenuFlyout.showMode FlyoutShowMode.TransientWithDismissOnPointerMoveAway
-                                            MenuFlyout.viewItems
-                                                [ MenuItem.create
-                                                      [ MenuItem.header "Logout"
-                                                        MenuItem.onClick (fun _ -> dispatch ClearDatabase) ] ] ]
-                                  ) ] ] ]
-                StackPanel.create
-                    [ StackPanel.orientation Orientation.Horizontal
-                      StackPanel.horizontalAlignment HorizontalAlignment.Center
-                      StackPanel.verticalAlignment VerticalAlignment.Center
-                      StackPanel.spacing 10
-                      StackPanel.children
-                          [ TextBlock.create
-                                [ TextBlock.fontSize 48
-                                  TextBlock.verticalAlignment VerticalAlignment.Center
-                                  TextBlock.text $"Welcome {user.data.username}" ] ] ] ]
+                                      Separator.create [ Grid.row 2; Grid.column 0; Grid.columnSpan 3 ]
 
-          ]
+                                      TextBlock.create
+                                          [ Grid.row 3
+                                            Grid.column 1
+                                            TextBlock.fontSize 20
+                                            TextBlock.text state.user.data.username ]
+
+                                      TextBlock.create
+                                          [ Grid.row 4; Grid.column 1; TextBlock.text $"Level {state.user.data.level}" ]
+
+                                      Button.create
+                                          [ Grid.row 5
+                                            Grid.column 0
+                                            Grid.columnSpan 3
+                                            Button.horizontalAlignment HorizontalAlignment.Stretch
+                                            Button.height 60
+                                            Button.background Color.secondary
+                                            Button.content (
+                                                TextBlock.create
+                                                    [ TextBlock.horizontalAlignment HorizontalAlignment.Center
+                                                      TextBlock.verticalAlignment VerticalAlignment.Center
+                                                      TextBlock.fontSize 15
+                                                      TextBlock.fontWeight FontWeight.Bold
+                                                      TextBlock.text "Logout" ]
+                                            )
+                                            Button.onClick (fun _ -> dispatch ClearDatabase) ] ]
+                            ) ]
+                      |> SplitView.pane
+
+                      Grid.create
+                          [ Grid.verticalAlignment VerticalAlignment.Center
+                            Grid.horizontalAlignment HorizontalAlignment.Center
+                            Grid.children [ TextBlock.create [ TextBlock.text "Main content" ] ] ]
+                      |> SplitView.content ] ] ]

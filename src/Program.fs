@@ -20,8 +20,8 @@ type MainWindow() as this =
     do
         base.Title <- "Wanigraphy"
         base.Icon <- WindowIcon(System.IO.Path.Combine("Assets", "Icons", "turtle.ico"))
-        base.Height <- 2000.0
-        base.Width <- 2000.0
+        base.Height <- 2000
+        base.Width <- 2000
 
         Elmish.Program.mkProgram App.init App.update App.view
         |> Program.withHost this
