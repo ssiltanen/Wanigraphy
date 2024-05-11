@@ -68,8 +68,11 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
             currentView = LoginView },
         Cmd.none
     | MainMsg mainMsg ->
-        let mainState, mainCmd = MainView.update mainMsg state.main.Value
-        { state with main = Some mainState }, Cmd.map MainMsg mainCmd
+        match state.main with
+        | Some main ->
+            let mainState, mainCmd = MainView.update mainMsg main
+            { state with main = Some mainState }, Cmd.map MainMsg mainCmd
+        | None -> state, Cmd.none
 
 let view (state: State) (dispatch: Msg -> unit) =
     match state.currentView with
