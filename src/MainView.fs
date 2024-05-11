@@ -3,6 +3,8 @@ module MainView
 
 open System
 open System.Data
+open System.Diagnostics
+open System.Runtime.InteropServices
 open Elmish
 open Avalonia.FuncUI
 open Avalonia.FuncUI.Types
@@ -17,6 +19,8 @@ open ElmishUtility
 open Wanikani
 open MetaType
 
+type Link = WanikaniProfile
+
 type Msg =
     | OpenSplitViewPane
     | CloseSplitViewPane
@@ -27,6 +31,7 @@ type Msg =
     | ReviewFetchAttempt of AsyncOp<Resource<Review>[]>
     | ReviewStatisticsFetchAttempt of AsyncOp<Resource<ReviewStatistics>[]>
     | LevelProgressionFetchAttempt of AsyncOp<Resource<LevelProgression>[]>
+    | OpenUrl of Link
 
 type State =
     { isPaneOpen: bool
@@ -39,6 +44,20 @@ type State =
       levelProgression: AsyncOp<Resource<LevelProgression>[]> }
 
 let conn = Database.connection
+
+let openUrl (url: string) =
+    let isOS = RuntimeInformation.IsOSPlatform
+
+    if isOS OSPlatform.OSX then
+        Some("open", url)
+    elif isOS OSPlatform.Linux then
+        Some("xdg-open", url)
+    elif isOS OSPlatform.Windows then
+        Some("cmd", $"/c start {url}")
+    else
+        Console.WriteLine "Unknown OS"
+        None
+    |> Option.iter (ProcessStartInfo >> Process.Start >> ignore)
 
 let init token user =
     { isPaneOpen = false
@@ -87,6 +106,12 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     | ReviewFetchAttempt result -> { state with reviews = result }, Cmd.none
     | ReviewStatisticsFetchAttempt result -> { state with reviewStatistics = result }, Cmd.none
     | LevelProgressionFetchAttempt result -> { state with levelProgression = result }, Cmd.none
+    | OpenUrl link ->
+        match link with
+        | WanikaniProfile -> state.user.data.profile_url.AbsoluteUri
+        |> openUrl
+
+        state, Cmd.none
 
 let view (state: State) (dispatch: Msg -> unit) =
     Grid.create
@@ -106,7 +131,7 @@ let view (state: State) (dispatch: Msg -> unit) =
 
                       Grid.create
                           [ // Grid.showGridLines true
-                            Grid.rowDefinitions "10, auto, 30, auto, *, auto"
+                            Grid.rowDefinitions "10, auto, 30, auto, auto, auto, *, auto"
                             Grid.columnDefinitions "10, *, 10"
                             Grid.children (
                                 match state.isPaneOpen with
@@ -146,10 +171,21 @@ let view (state: State) (dispatch: Msg -> unit) =
                                             TextBlock.text state.user.data.username ]
 
                                       TextBlock.create
-                                          [ Grid.row 4; Grid.column 1; TextBlock.text $"Level {state.user.data.level}" ]
+                                          [ Grid.row 4
+                                            Grid.column 1
+                                            TextBlock.margin (0, 1, 0, 0)
+                                            TextBlock.text $"Level {state.user.data.level}" ]
+
+                                      TextBlock.create
+                                          [ Grid.row 5
+                                            Grid.column 1
+                                            TextBlock.margin (0, 10, 0, 0)
+                                            TextBlock.classes [ "link" ]
+                                            TextBlock.text "Go to profile"
+                                            TextBlock.onTapped (fun _ -> dispatch (OpenUrl WanikaniProfile)) ]
 
                                       Button.create
-                                          [ Grid.row 5
+                                          [ Grid.row 7
                                             Grid.column 0
                                             Grid.columnSpan 3
                                             Button.horizontalAlignment HorizontalAlignment.Stretch
@@ -159,7 +195,7 @@ let view (state: State) (dispatch: Msg -> unit) =
                                                 TextBlock.create
                                                     [ TextBlock.horizontalAlignment HorizontalAlignment.Center
                                                       TextBlock.verticalAlignment VerticalAlignment.Center
-                                                      TextBlock.fontSize 15
+                                                      TextBlock.fontSize 18
                                                       TextBlock.fontWeight FontWeight.Bold
                                                       TextBlock.text "Logout" ]
                                             )

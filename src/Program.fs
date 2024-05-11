@@ -25,7 +25,7 @@ type MainWindow() as this =
 
         Elmish.Program.mkProgram App.init App.update App.view
         |> Program.withHost this
-        |> Program.withConsoleTrace
+        // |> Program.withConsoleTrace
         |> Program.runWithAvaloniaSyncDispatch ()
 
 type Wanigraphy() =
@@ -33,6 +33,7 @@ type Wanigraphy() =
 
     override this.Initialize() =
         this.Styles.Add(FluentTheme())
+        this.Styles.Load "avares://Wanigraphy/Styles.xaml"
         this.RequestedThemeVariant <- Styling.ThemeVariant.Dark
 
     override this.OnFrameworkInitializationCompleted() =
