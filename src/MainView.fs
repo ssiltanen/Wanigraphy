@@ -1,5 +1,5 @@
 [<RequireQualifiedAccess>]
-module UserOverview
+module MainView
 
 open System
 open System.Data
