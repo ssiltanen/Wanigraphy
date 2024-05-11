@@ -113,6 +113,13 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
 
         state, Cmd.none
 
+let WanigraphyIcon =
+    Image.create
+        [ Image.horizontalAlignment HorizontalAlignment.Center
+          Image.source Icons.user.Value
+          Image.height 40
+          Image.width 40 ]
+
 let view (state: State) (dispatch: Msg -> unit) =
     Grid.create
         [ Grid.background Color.background
@@ -136,13 +143,7 @@ let view (state: State) (dispatch: Msg -> unit) =
                             Grid.children (
                                 match state.isPaneOpen with
                                 | false ->
-                                    [ Image.create
-                                          [ Grid.row 1
-                                            Grid.column 1
-                                            Image.horizontalAlignment HorizontalAlignment.Center
-                                            Image.source Icons.user.Value
-                                            Image.height 40
-                                            Image.width 40 ] ]
+                                    [ Panel.create [ Grid.row 1; Grid.column 1; Panel.children [ WanigraphyIcon ] ] ]
                                 | true ->
                                     [ StackPanel.create
                                           [ Grid.row 1
@@ -151,11 +152,7 @@ let view (state: State) (dispatch: Msg -> unit) =
                                             StackPanel.orientation Orientation.Horizontal
                                             StackPanel.spacing 10
                                             StackPanel.children
-                                                [ Image.create
-                                                      [ Image.horizontalAlignment HorizontalAlignment.Center
-                                                        Image.source Icons.user.Value
-                                                        Image.height 40
-                                                        Image.width 40 ]
+                                                [ WanigraphyIcon
                                                   TextBlock.create
                                                       [ TextBlock.verticalAlignment VerticalAlignment.Bottom
                                                         TextBlock.fontSize 28
