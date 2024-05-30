@@ -17,6 +17,7 @@ open Avalonia.Svg.Skia
 open ElmishUtility
 
 open Wanikani
+open Highlights
 open MetaType
 
 type Link = WanikaniProfile
@@ -120,6 +121,81 @@ let WanigraphyIcon =
           Image.height 40
           Image.width 40 ]
 
+let sidePanel state dispatch =
+    Grid.create
+        [ // Grid.showGridLines true
+          Grid.rowDefinitions "10, auto, 30, auto, auto, auto, *, auto"
+          Grid.columnDefinitions "10, *, 10"
+          Grid.children (
+              match state.isPaneOpen with
+              | false -> [ Panel.create [ Grid.row 1; Grid.column 1; Panel.children [ WanigraphyIcon ] ] ]
+              | true ->
+                  [ StackPanel.create
+                        [ Grid.row 1
+                          Grid.column 1
+                          StackPanel.margin 0
+                          StackPanel.orientation Orientation.Horizontal
+                          StackPanel.spacing 10
+                          StackPanel.children
+                              [ WanigraphyIcon
+                                TextBlock.create
+                                    [ TextBlock.verticalAlignment VerticalAlignment.Bottom
+                                      TextBlock.fontSize 28
+                                      TextBlock.fontWeight FontWeight.Bold
+                                      TextBlock.text "Wanigraphy" ] ] ]
+
+                    Separator.create [ Grid.row 2; Grid.column 0; Grid.columnSpan 3 ]
+
+                    TextBlock.create
+                        [ Grid.row 3
+                          Grid.column 1
+                          TextBlock.fontSize 20
+                          TextBlock.text state.user.data.username ]
+
+                    TextBlock.create
+                        [ Grid.row 4
+                          Grid.column 1
+                          TextBlock.margin (0, 1, 0, 0)
+                          TextBlock.text $"Level {state.user.data.level}" ]
+
+                    TextBlock.create
+                        [ Grid.row 5
+                          Grid.column 1
+                          TextBlock.margin (0, 10, 0, 0)
+                          TextBlock.classes [ "link" ]
+                          TextBlock.text "Go to profile"
+                          TextBlock.onTapped (fun _ -> dispatch (OpenUrl WanikaniProfile)) ]
+
+                    Button.create
+                        [ Grid.row 7
+                          Grid.column 0
+                          Grid.columnSpan 3
+                          Button.horizontalAlignment HorizontalAlignment.Stretch
+                          Button.height 60
+                          Button.background Color.secondary
+                          Button.content (
+                              TextBlock.create
+                                  [ TextBlock.horizontalAlignment HorizontalAlignment.Center
+                                    TextBlock.verticalAlignment VerticalAlignment.Center
+                                    TextBlock.fontSize 18
+                                    TextBlock.fontWeight FontWeight.Bold
+                                    TextBlock.text "Logout" ]
+                          )
+                          Button.onClick (fun _ -> dispatch ClearDatabase) ] ]
+          ) ]
+
+
+let mainContent (state: State) dispatch =
+    Grid.create
+        [ Grid.horizontalAlignment HorizontalAlignment.Center
+          Grid.rowDefinitions "auto auto"
+          Grid.children
+              [ Panel.create
+                    [ Grid.row 0
+                      Panel.margin (0, 10)
+                      Panel.children [ SrsStage.countView state.assignments ] ]
+                TextBlock.create [ Grid.row 1; TextBlock.text "Main content" ] ] ]
+
 let view (state: State) (dispatch: Msg -> unit) =
     Grid.create
         [ Grid.background Color.background
@@ -132,76 +208,14 @@ let view (state: State) (dispatch: Msg -> unit) =
                       SplitView.isPaneOpen state.isPaneOpen
                       SplitView.displayMode SplitViewDisplayMode.CompactOverlay
                       SplitView.useLightDismissOverlayMode true
-                      SplitView.onPointerEntered (fun _ -> dispatch OpenSplitViewPane)
+                      SplitView.onPointerEntered (fun e ->
+                          // Unfortunately, SplitView triggers this event on both pane, and content.
+                          // To send our event only on side pane pointer enter, we check the pointer position
+                          let point = e.GetPosition(null)
+
+                          if point.X < 60 then
+                              dispatch OpenSplitViewPane)
                       SplitView.onPointerExited (fun _ -> dispatch CloseSplitViewPane)
 
-
-                      Grid.create
-                          [ // Grid.showGridLines true
-                            Grid.rowDefinitions "10, auto, 30, auto, auto, auto, *, auto"
-                            Grid.columnDefinitions "10, *, 10"
-                            Grid.children (
-                                match state.isPaneOpen with
-                                | false ->
-                                    [ Panel.create [ Grid.row 1; Grid.column 1; Panel.children [ WanigraphyIcon ] ] ]
-                                | true ->
-                                    [ StackPanel.create
-                                          [ Grid.row 1
-                                            Grid.column 1
-                                            StackPanel.margin 0
-                                            StackPanel.orientation Orientation.Horizontal
-                                            StackPanel.spacing 10
-                                            StackPanel.children
-                                                [ WanigraphyIcon
-                                                  TextBlock.create
-                                                      [ TextBlock.verticalAlignment VerticalAlignment.Bottom
-                                                        TextBlock.fontSize 28
-                                                        TextBlock.fontWeight FontWeight.Bold
-                                                        TextBlock.text "Wanigraphy" ] ] ]
-
-                                      Separator.create [ Grid.row 2; Grid.column 0; Grid.columnSpan 3 ]
-
-                                      TextBlock.create
-                                          [ Grid.row 3
-                                            Grid.column 1
-                                            TextBlock.fontSize 20
-                                            TextBlock.text state.user.data.username ]
-
-                                      TextBlock.create
-                                          [ Grid.row 4
-                                            Grid.column 1
-                                            TextBlock.margin (0, 1, 0, 0)
-                                            TextBlock.text $"Level {state.user.data.level}" ]
-
-                                      TextBlock.create
-                                          [ Grid.row 5
-                                            Grid.column 1
-                                            TextBlock.margin (0, 10, 0, 0)
-                                            TextBlock.classes [ "link" ]
-                                            TextBlock.text "Go to profile"
-                                            TextBlock.onTapped (fun _ -> dispatch (OpenUrl WanikaniProfile)) ]
-
-                                      Button.create
-                                          [ Grid.row 7
-                                            Grid.column 0
-                                            Grid.columnSpan 3
-                                            Button.horizontalAlignment HorizontalAlignment.Stretch
-                                            Button.height 60
-                                            Button.background Color.secondary
-                                            Button.content (
-                                                TextBlock.create
-                                                    [ TextBlock.horizontalAlignment HorizontalAlignment.Center
-                                                      TextBlock.verticalAlignment VerticalAlignment.Center
-                                                      TextBlock.fontSize 18
-                                                      TextBlock.fontWeight FontWeight.Bold
-                                                      TextBlock.text "Logout" ]
-                                            )
-                                            Button.onClick (fun _ -> dispatch ClearDatabase) ] ]
-                            ) ]
-                      |> SplitView.pane
-
-                      Grid.create
-                          [ Grid.verticalAlignment VerticalAlignment.Center
-                            Grid.horizontalAlignment HorizontalAlignment.Center
-                            Grid.children [ TextBlock.create [ TextBlock.text "Main content" ] ] ]
-                      |> SplitView.content ] ] ]
+                      sidePanel state dispatch |> SplitView.pane
+                      mainContent state dispatch |> SplitView.content ] ] ]

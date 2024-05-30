@@ -62,13 +62,46 @@ type SubjectType =
     | Vocabulary
     | [<JsonName "kana_vocabulary">] KanaVocabulary
 
+type SrsStage =
+    | Initiate = 0u
+    | Apprentice1 = 1u
+    | Apprentice2 = 2u
+    | Apprentice3 = 3u
+    | Apprentice4 = 4u
+    | Guru1 = 5u
+    | Guru2 = 6u
+    | Master = 7u
+    | Enlightened = 8u
+    | Burned = 9u
+
+type ReviewStartingSrsStage =
+    | Apprentice1 = 1u
+    | Apprentice2 = 2u
+    | Apprentice3 = 3u
+    | Apprentice4 = 4u
+    | Guru1 = 5u
+    | Guru2 = 6u
+    | Master = 7u
+    | Enlightened = 8u
+
+type ReviewEndingSrsStage =
+    | Apprentice1 = 1u
+    | Apprentice2 = 2u
+    | Apprentice3 = 3u
+    | Apprentice4 = 4u
+    | Guru1 = 5u
+    | Guru2 = 6u
+    | Master = 7u
+    | Enlightened = 8u
+    | Burned = 9u
+
 type Assignment =
     { available_at: DateTime option
       burned_at: DateTime option
       created_at: DateTime
       passed_at: DateTime option
       resurrected_at: DateTime option
-      srs_stage: uint
+      srs_stage: SrsStage
       started_at: DateTime
       subject_id: uint
       subject_type: SubjectType
@@ -77,11 +110,11 @@ type Assignment =
 type Review =
     { assignment_id: uint
       created_at: DateTime
-      ending_srs_stage: uint // 1..9
+      ending_srs_stage: ReviewEndingSrsStage
       incorrect_meaning_answers: uint
       incorrect_reading_answers: uint
       spaced_repetition_system_id: uint
-      starting_srs_stage: uint // 1..8
+      starting_srs_stage: ReviewStartingSrsStage
       subject_id: uint }
 
 type ReviewStatistics =
