@@ -17,18 +17,18 @@ open Wanikani
 open MetaType
 
 type View =
-    | Login
-    | UserOverview
+    | LoginView
+    | MainView
 
 type Msg =
     | DbInitialized
     | LoginMsg of Login.Msg
-    | UserOverviewMsg of UserOverview.Msg
+    | MainMsg of MainView.Msg
 
 type State =
     { currentView: View
       login: Login.State
-      user: UserOverview.State option }
+      main: MainView.State option }
 
 let conn = Database.connection
 
@@ -36,9 +36,9 @@ let init () =
     let loginState, loginCmd = Login.init ()
 
     let initialState =
-        { currentView = Login
+        { currentView = LoginView
           login = loginState
-          user = None }
+          main = None }
 
     let initialCmd =
         Cmd.batch
@@ -51,31 +51,30 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     match msg with
     | DbInitialized -> state, Cmd.none
     | LoginMsg(Login.LoggedIn(token, user)) ->
-        let userState, userCmd = UserOverview.init token user
+        let mainState, mainCmd = MainView.init token user
 
         { state with
             login = Login.init () |> fst
-            user = Some userState
-            currentView = UserOverview },
-        Cmd.map UserOverviewMsg userCmd
+            main = Some mainState
+            currentView = MainView },
+        Cmd.map MainMsg mainCmd
     | LoginMsg loginMsg ->
         let loginState, loginCmd = Login.update loginMsg state.login
 
         { state with login = loginState }, Cmd.map LoginMsg loginCmd
-    | UserOverviewMsg UserOverview.Logout ->
+    | MainMsg MainView.Logout ->
         { state with
-            user = None
-            currentView = Login },
+            main = None
+            currentView = LoginView },
         Cmd.none
-    | UserOverviewMsg userMsg ->
-        let userOverviewState, userOverviewCmd =
-            UserOverview.update userMsg state.user.Value
-
-        { state with
-            user = Some userOverviewState },
-        Cmd.map UserOverviewMsg userOverviewCmd
+    | MainMsg mainMsg ->
+        match state.main with
+        | Some main ->
+            let mainState, mainCmd = MainView.update mainMsg main
+            { state with main = Some mainState }, Cmd.map MainMsg mainCmd
+        | None -> state, Cmd.none
 
 let view (state: State) (dispatch: Msg -> unit) =
     match state.currentView with
-    | Login -> Login.view state.login (LoginMsg >> dispatch)
-    | UserOverview -> UserOverview.view state.user.Value (UserOverviewMsg >> dispatch)
+    | LoginView -> Login.view state.login (LoginMsg >> dispatch)
+    | MainView -> MainView.view state.main.Value (MainMsg >> dispatch)

@@ -10,13 +10,15 @@
     <Compile Include="Database.fs" />
     <Compile Include="Wanikani.fs" />
     <Compile Include="ElmishUtility.fs" />
-    <Compile Include="UserOverview.fs" />
+    <Compile Include="Highlights.fs" />
+    <Compile Include="MainView.fs" />
     <Compile Include="Login.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\**"/>
+    <AvaloniaResource Include="**\*.xaml" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
